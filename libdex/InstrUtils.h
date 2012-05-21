@@ -81,6 +81,9 @@ enum InstructionIndexType {
     kIndexStringRef,    // string reference index
     kIndexMethodRef,    // method reference index
     kIndexFieldRef,     // field reference index
+    kIndexMethodtypeRef,
+    kIndexMethodhandleRef,
+    kIndexIndyRef,
     kIndexInlineMethod, // inline method index (for inline linked methods)
     kIndexVtableOffset, // vtable offset (for static linked methods)
     kIndexFieldOffset   // field offset (for static linked fields)

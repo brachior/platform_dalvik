@@ -130,12 +130,12 @@ enum Opcode {
     OP_IF_GEZ                       = 0x3b,
     OP_IF_GTZ                       = 0x3c,
     OP_IF_LEZ                       = 0x3d,
-    OP_UNUSED_3E                    = 0x3e,
-    OP_UNUSED_3F                    = 0x3f,
-    OP_UNUSED_40                    = 0x40,
-    OP_UNUSED_41                    = 0x41,
-    OP_UNUSED_42                    = 0x42,
-    OP_UNUSED_43                    = 0x43,
+    OP_CONST_METHODTYPE             = 0x3e,
+    OP_CONST_METHODHANDLE           = 0x3f,
+    OP_INVOKE_EXACT                 = 0x40,
+    OP_INVOKE_GENERIC               = 0x41,
+    OP_INVOKE_EXACT_RANGE           = 0x42,
+    OP_INVOKE_GENERIC_RANGE         = 0x43,
     OP_AGET                         = 0x44,
     OP_AGET_WIDE                    = 0x45,
     OP_AGET_OBJECT                  = 0x46,
@@ -183,13 +183,13 @@ enum Opcode {
     OP_INVOKE_DIRECT                = 0x70,
     OP_INVOKE_STATIC                = 0x71,
     OP_INVOKE_INTERFACE             = 0x72,
-    OP_UNUSED_73                    = 0x73,
+    OP_INVOKE_DYNAMIC               = 0x73,
     OP_INVOKE_VIRTUAL_RANGE         = 0x74,
     OP_INVOKE_SUPER_RANGE           = 0x75,
     OP_INVOKE_DIRECT_RANGE          = 0x76,
     OP_INVOKE_STATIC_RANGE          = 0x77,
     OP_INVOKE_INTERFACE_RANGE       = 0x78,
-    OP_UNUSED_79                    = 0x79,
+    OP_INVOKE_DYNAMIC_RANGE         = 0x79,
     OP_UNUSED_7A                    = 0x7a,
     OP_NEG_INT                      = 0x7b,
     OP_NOT_INT                      = 0x7c,
@@ -363,11 +363,11 @@ enum Opcode {
     OP_INVOKE_DIRECT_JUMBO          = 0x124,
     OP_INVOKE_STATIC_JUMBO          = 0x125,
     OP_INVOKE_INTERFACE_JUMBO       = 0x126,
-    OP_UNUSED_27FF                  = 0x127,
-    OP_UNUSED_28FF                  = 0x128,
-    OP_UNUSED_29FF                  = 0x129,
-    OP_UNUSED_2AFF                  = 0x12a,
-    OP_UNUSED_2BFF                  = 0x12b,
+    OP_INVOKE_EXACT_JUMBO           = 0x127,
+    OP_INVOKE_GENERIC_JUMBO         = 0x128,
+    OP_INVOKE_DYNAMIC_JUMBO         = 0x129,
+    OP_CONST_METHODTYPE_JUMBO       = 0x12a,
+    OP_CONST_METHODHANDLE_JUMBO     = 0x12b,
     OP_UNUSED_2CFF                  = 0x12c,
     OP_UNUSED_2DFF                  = 0x12d,
     OP_UNUSED_2EFF                  = 0x12e,
@@ -652,12 +652,12 @@ enum Opcode {
         H(OP_IF_GEZ),                                                         \
         H(OP_IF_GTZ),                                                         \
         H(OP_IF_LEZ),                                                         \
-        H(OP_UNUSED_3E),                                                      \
-        H(OP_UNUSED_3F),                                                      \
-        H(OP_UNUSED_40),                                                      \
-        H(OP_UNUSED_41),                                                      \
-        H(OP_UNUSED_42),                                                      \
-        H(OP_UNUSED_43),                                                      \
+        H(OP_CONST_METHODTYPE),                                               \
+        H(OP_CONST_METHODHANDLE),                                             \
+        H(OP_INVOKE_EXACT),                                                   \
+        H(OP_INVOKE_GENERIC),                                                 \
+        H(OP_INVOKE_EXACT_RANGE),                                             \
+        H(OP_INVOKE_GENERIC_RANGE),                                           \
         H(OP_AGET),                                                           \
         H(OP_AGET_WIDE),                                                      \
         H(OP_AGET_OBJECT),                                                    \
@@ -705,13 +705,13 @@ enum Opcode {
         H(OP_INVOKE_DIRECT),                                                  \
         H(OP_INVOKE_STATIC),                                                  \
         H(OP_INVOKE_INTERFACE),                                               \
-        H(OP_UNUSED_73),                                                      \
+        H(OP_INVOKE_DYNAMIC),                                                 \
         H(OP_INVOKE_VIRTUAL_RANGE),                                           \
         H(OP_INVOKE_SUPER_RANGE),                                             \
         H(OP_INVOKE_DIRECT_RANGE),                                            \
         H(OP_INVOKE_STATIC_RANGE),                                            \
         H(OP_INVOKE_INTERFACE_RANGE),                                         \
-        H(OP_UNUSED_79),                                                      \
+        H(OP_INVOKE_DYNAMIC_RANGE),                                           \
         H(OP_UNUSED_7A),                                                      \
         H(OP_NEG_INT),                                                        \
         H(OP_NOT_INT),                                                        \
@@ -885,11 +885,11 @@ enum Opcode {
         H(OP_INVOKE_DIRECT_JUMBO),                                            \
         H(OP_INVOKE_STATIC_JUMBO),                                            \
         H(OP_INVOKE_INTERFACE_JUMBO),                                         \
-        H(OP_UNUSED_27FF),                                                    \
-        H(OP_UNUSED_28FF),                                                    \
-        H(OP_UNUSED_29FF),                                                    \
-        H(OP_UNUSED_2AFF),                                                    \
-        H(OP_UNUSED_2BFF),                                                    \
+        H(OP_INVOKE_EXACT_JUMBO),                                             \
+        H(OP_INVOKE_GENERIC_JUMBO),                                           \
+        H(OP_INVOKE_DYNAMIC_JUMBO),                                           \
+        H(OP_CONST_METHODTYPE_JUMBO),                                         \
+        H(OP_CONST_METHODHANDLE_JUMBO),                                       \
         H(OP_UNUSED_2CFF),                                                    \
         H(OP_UNUSED_2DFF),                                                    \
         H(OP_UNUSED_2EFF),                                                    \
