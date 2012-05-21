@@ -247,7 +247,7 @@ public final class Rop {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer(40);
+        StringBuilder sb = new StringBuilder(40);
 
         sb.append("Rop{");
 
@@ -295,7 +295,7 @@ public final class Rop {
                 case BRANCH_GOTO:   sb.append(" gotos"); break;
                 case BRANCH_IF:     sb.append(" ifs"); break;
                 case BRANCH_SWITCH: sb.append(" switches"); break;
-                default: sb.append(" " + Hex.u1(branchingness)); break;
+                default: sb.append(" ").append(Hex.u1(branchingness)); break;
             }
         }
 

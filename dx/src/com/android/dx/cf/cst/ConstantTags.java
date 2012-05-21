@@ -52,4 +52,13 @@ public interface ConstantTags {
 
     /** tag for a {@code CONSTANT_NameAndType_info} */
     int CONSTANT_NameAndType = 12;
+
+    /** tag for a {@code CONSTANT_MethodHandle_info} */
+    int CONSTANT_MethodHandle = 15;
+
+    /** tag for a {@code CONSTANT_MethodType_info} */
+    int CONSTANT_MethodType = 16;
+
+    /** tag for a {@code CONSTANT_InvokeDynamic_info} */
+    int CONSTANT_InvokeDynamic = 18;
 }

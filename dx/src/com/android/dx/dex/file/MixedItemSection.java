@@ -277,7 +277,12 @@ public final class MixedItemSection extends Section {
 
             for (/*i*/; i < sz; i++) {
                 OffsettedItem one = items.get(i);
-                one.addContents(file);
+                try {
+                    one.addContents(file);
+                } catch (Exception e) {
+                    System.err.println(one.getClass().getName());
+                    throw new RuntimeException(e);
+                }
             }
         }
     }

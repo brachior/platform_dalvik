@@ -145,7 +145,8 @@ public class ValueAwareMachine extends BaseMachine {
             case ByteOps.GETFIELD:
             case ByteOps.INVOKEVIRTUAL:
             case ByteOps.INVOKESTATIC:
-            case ByteOps.INVOKEINTERFACE: {
+            case ByteOps.INVOKEINTERFACE:
+            case ByteOps.INVOKEDYNAMIC: {
                 Type type = ((TypeBearer) getAuxCst()).getType();
                 if (type == Type.VOID) {
                     clearResult();

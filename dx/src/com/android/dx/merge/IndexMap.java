@@ -33,260 +33,252 @@ import com.android.dx.util.Unsigned;
 import java.util.HashMap;
 
 /**
- * Maps the index offsets from one dex file to those in another. For example, if
- * you have string #5 in the old dex file, its position in the new dex file is
- * {@code strings[5]}.
+ * Maps the index offsets from one dex file to those in another. For example, if you have string #5
+ * in the old dex file, its position in the new dex file is {@code strings[5]}.
  */
 public final class IndexMap {
-    private final DexBuffer target;
-    public final int[] stringIds;
-    public final short[] typeIds;
-    public final short[] protoIds;
-    public final short[] fieldIds;
-    public final short[] methodIds;
-    private final HashMap<Integer, Integer> typeListOffsets;
-    private final HashMap<Integer, Integer> annotationOffsets;
-    private final HashMap<Integer, Integer> annotationSetOffsets;
-    private final HashMap<Integer, Integer> annotationDirectoryOffsets;
+	private final DexBuffer target;
+	public final int[] stringIds;
+	public final short[] typeIds;
+	public final short[] protoIds;
+	public final short[] fieldIds;
+	public final short[] methodIds;
+	public final short[] methodtypeIds;
+	public final short[] methodhandleIds;
+	public final short[] invokedynamicIds;
 
-    public IndexMap(DexBuffer target, TableOfContents tableOfContents) {
-        this.target = target;
-        this.stringIds = new int[tableOfContents.stringIds.size];
-        this.typeIds = new short[tableOfContents.typeIds.size];
-        this.protoIds = new short[tableOfContents.protoIds.size];
-        this.fieldIds = new short[tableOfContents.fieldIds.size];
-        this.methodIds = new short[tableOfContents.methodIds.size];
-        this.typeListOffsets = new HashMap<Integer, Integer>();
-        this.annotationOffsets = new HashMap<Integer, Integer>();
-        this.annotationSetOffsets = new HashMap<Integer, Integer>();
-        this.annotationDirectoryOffsets = new HashMap<Integer, Integer>();
+	private final HashMap<Integer, Integer> typeListOffsets;
+	private final HashMap<Integer, Integer> annotationOffsets;
+	private final HashMap<Integer, Integer> annotationSetOffsets;
+	private final HashMap<Integer, Integer> annotationDirectoryOffsets;
 
-        /*
-         * A type list, annotation set, or annotation directory at offset 0 is
-         * always empty. Always map offset 0 to 0.
-         */
-        this.typeListOffsets.put(0, 0);
-        this.annotationSetOffsets.put(0, 0);
-        this.annotationDirectoryOffsets.put(0, 0);
-    }
+	public IndexMap(DexBuffer target, TableOfContents tableOfContents) {
+		this.target = target;
+		this.stringIds = new int[tableOfContents.stringIds.size];
+		this.typeIds = new short[tableOfContents.typeIds.size];
+		this.protoIds = new short[tableOfContents.protoIds.size];
+		this.fieldIds = new short[tableOfContents.fieldIds.size];
+		this.methodIds = new short[tableOfContents.methodIds.size];
+		this.methodtypeIds = new short[tableOfContents.methodtypeIds.size];
+		this.methodhandleIds = new short[tableOfContents.methodhandleIds.size];
+		this.invokedynamicIds = new short[tableOfContents.invokedynamicIds.size];
 
-    public void putTypeListOffset(int oldOffset, int newOffset) {
-        if (oldOffset <= 0 || newOffset <= 0) {
-            throw new IllegalArgumentException();
-        }
-        typeListOffsets.put(oldOffset, newOffset);
-    }
+		this.typeListOffsets = new HashMap<Integer, Integer>();
+		this.annotationOffsets = new HashMap<Integer, Integer>();
+		this.annotationSetOffsets = new HashMap<Integer, Integer>();
+		this.annotationDirectoryOffsets = new HashMap<Integer, Integer>();
 
-    public void putAnnotationOffset(int oldOffset, int newOffset) {
-        if (oldOffset <= 0 || newOffset <= 0) {
-            throw new IllegalArgumentException();
-        }
-        annotationOffsets.put(oldOffset, newOffset);
-    }
+		/*
+		 * A type list, annotation set, or annotation directory at offset 0 is always empty. Always map
+		 * offset 0 to 0.
+		 */
+		this.typeListOffsets.put(0, 0);
+		this.annotationSetOffsets.put(0, 0);
+		this.annotationDirectoryOffsets.put(0, 0);
+	}
 
-    public void putAnnotationSetOffset(int oldOffset, int newOffset) {
-        if (oldOffset <= 0 || newOffset <= 0) {
-            throw new IllegalArgumentException();
-        }
-        annotationSetOffsets.put(oldOffset, newOffset);
-    }
+	public void putTypeListOffset(int oldOffset, int newOffset) {
+		if (oldOffset <= 0 || newOffset <= 0) { throw new IllegalArgumentException(); }
+		typeListOffsets.put(oldOffset, newOffset);
+	}
 
-    public void putAnnotationDirectoryOffset(int oldOffset, int newOffset) {
-        if (oldOffset <= 0 || newOffset <= 0) {
-            throw new IllegalArgumentException();
-        }
-        annotationDirectoryOffsets.put(oldOffset, newOffset);
-    }
+	public void putAnnotationOffset(int oldOffset, int newOffset) {
+		if (oldOffset <= 0 || newOffset <= 0) { throw new IllegalArgumentException(); }
+		annotationOffsets.put(oldOffset, newOffset);
+	}
 
-    public int adjustString(int stringIndex) {
-        return stringIndex == ClassDef.NO_INDEX ? ClassDef.NO_INDEX : stringIds[stringIndex];
-    }
+	public void putAnnotationSetOffset(int oldOffset, int newOffset) {
+		if (oldOffset <= 0 || newOffset <= 0) { throw new IllegalArgumentException(); }
+		annotationSetOffsets.put(oldOffset, newOffset);
+	}
 
-    public int adjustType(int typeIndex) {
-        return (typeIndex == ClassDef.NO_INDEX) ? ClassDef.NO_INDEX : (typeIds[typeIndex] & 0xffff);
-    }
+	public void putAnnotationDirectoryOffset(int oldOffset, int newOffset) {
+		if (oldOffset <= 0 || newOffset <= 0) { throw new IllegalArgumentException(); }
+		annotationDirectoryOffsets.put(oldOffset, newOffset);
+	}
 
-    public TypeList adjustTypeList(TypeList typeList) {
-        if (typeList == TypeList.EMPTY) {
-            return typeList;
-        }
-        short[] types = typeList.getTypes().clone();
-        for (int i = 0; i < types.length; i++) {
-            types[i] = (short) adjustType(types[i]);
-        }
-        return new TypeList(target, types);
-    }
+	public int adjustString(int stringIndex) {
+		return stringIndex == ClassDef.NO_INDEX ? ClassDef.NO_INDEX : stringIds[stringIndex];
+	}
 
-    public int adjustProto(int protoIndex) {
-        return protoIds[protoIndex] & 0xffff;
-    }
+	public int adjustType(int typeIndex) {
+		return (typeIndex == ClassDef.NO_INDEX) ? ClassDef.NO_INDEX : (typeIds[typeIndex] & 0xffff);
+	}
 
-    public int adjustField(int fieldIndex) {
-        return fieldIds[fieldIndex] & 0xffff;
-    }
+	public TypeList adjustTypeList(TypeList typeList) {
+		if (typeList == TypeList.EMPTY) { return typeList; }
+		short[] types = typeList.getTypes().clone();
+		for (int i = 0; i < types.length; i++) {
+			types[i] = (short) adjustType(types[i]);
+		}
+		return new TypeList(target, types);
+	}
 
-    public int adjustMethod(int methodIndex) {
-        return methodIds[methodIndex] & 0xffff;
-    }
+	public int adjustProto(int protoIndex) {
+		return protoIds[protoIndex] & 0xffff;
+	}
 
-    public int adjustTypeListOffset(int typeListOffset) {
-        return typeListOffsets.get(typeListOffset);
-    }
+	public int adjustField(int fieldIndex) {
+		return fieldIds[fieldIndex] & 0xffff;
+	}
 
-    public int adjustAnnotation(int annotationOffset) {
-        return annotationOffsets.get(annotationOffset);
-    }
+	public int adjustMethod(int methodIndex) {
+		return methodIds[methodIndex] & 0xffff;
+	}
 
-    public int adjustAnnotationSet(int annotationSetOffset) {
-        return annotationSetOffsets.get(annotationSetOffset);
-    }
+	public int adjustTypeListOffset(int typeListOffset) {
+		return typeListOffsets.get(typeListOffset);
+	}
 
-    public int adjustAnnotationDirectory(int annotationDirectoryOffset) {
-        return annotationDirectoryOffsets.get(annotationDirectoryOffset);
-    }
+	public int adjustAnnotation(int annotationOffset) {
+		return annotationOffsets.get(annotationOffset);
+	}
 
-    public MethodId adjust(MethodId methodId) {
-        return new MethodId(target,
-                adjustType(methodId.getDeclaringClassIndex()),
-                adjustProto(methodId.getProtoIndex()),
-                adjustString(methodId.getNameIndex()));
-    }
+	public int adjustAnnotationSet(int annotationSetOffset) {
+		return annotationSetOffsets.get(annotationSetOffset);
+	}
 
-    public FieldId adjust(FieldId fieldId) {
-        return new FieldId(target,
-                adjustType(fieldId.getDeclaringClassIndex()),
-                adjustType(fieldId.getTypeIndex()),
-                adjustString(fieldId.getNameIndex()));
+	public int adjustAnnotationDirectory(int annotationDirectoryOffset) {
+		return annotationDirectoryOffsets.get(annotationDirectoryOffset);
+	}
 
-    }
+	public MethodId adjust(MethodId methodId) {
+		return new MethodId(target, adjustType(methodId.getDeclaringClassIndex()),
+				adjustProto(methodId.getProtoIndex()), adjustString(methodId.getNameIndex()));
+	}
 
-    public ProtoId adjust(ProtoId protoId) {
-        return new ProtoId(target,
-                adjustString(protoId.getShortyIndex()),
-                adjustType(protoId.getReturnTypeIndex()),
-                adjustTypeListOffset(protoId.getParametersOffset()));
-    }
+	public FieldId adjust(FieldId fieldId) {
+		return new FieldId(target, adjustType(fieldId.getDeclaringClassIndex()),
+				adjustType(fieldId.getTypeIndex()), adjustString(fieldId.getNameIndex()));
 
-    public ClassDef adjust(ClassDef classDef) {
-        return new ClassDef(target, classDef.getOffset(), adjustType(classDef.getTypeIndex()),
-                classDef.getAccessFlags(), adjustType(classDef.getSupertypeIndex()),
-                adjustTypeListOffset(classDef.getInterfacesOffset()), classDef.getSourceFileIndex(),
-                classDef.getAnnotationsOffset(), classDef.getClassDataOffset(),
-                classDef.getStaticValuesOffset());
-    }
+	}
 
-    public SortableType adjust(SortableType sortableType) {
-        return new SortableType(sortableType.getBuffer(), adjust(sortableType.getClassDef()));
-    }
+	public ProtoId adjust(ProtoId protoId) {
+		return new ProtoId(target, adjustString(protoId.getShortyIndex()),
+				adjustType(protoId.getReturnTypeIndex()),
+				adjustTypeListOffset(protoId.getParametersOffset()));
+	}
 
-    public EncodedValue adjustEncodedValue(EncodedValue encodedValue) {
-        ByteArrayAnnotatedOutput out = new ByteArrayAnnotatedOutput(32);
-        new EncodedValueTransformer(encodedValue, out).readValue();
-        return new EncodedValue(out.toByteArray());
-    }
+	public ClassDef adjust(ClassDef classDef) {
+		return new ClassDef(target, classDef.getOffset(), adjustType(classDef.getTypeIndex()),
+				classDef.getAccessFlags(), adjustType(classDef.getSupertypeIndex()),
+				adjustTypeListOffset(classDef.getInterfacesOffset()), classDef.getSourceFileIndex(),
+				classDef.getAnnotationsOffset(), classDef.getClassDataOffset(),
+				classDef.getStaticValuesOffset());
+	}
 
-    public EncodedValue adjustEncodedArray(EncodedValue encodedArray) {
-        ByteArrayAnnotatedOutput out = new ByteArrayAnnotatedOutput(32);
-        new EncodedValueTransformer(encodedArray, out).readArray();
-        return new EncodedValue(out.toByteArray());
-    }
+	public SortableType adjust(SortableType sortableType) {
+		return new SortableType(sortableType.getBuffer(), adjust(sortableType.getClassDef()));
+	}
 
-    public Annotation adjust(Annotation annotation) {
-        int[] names = annotation.getNames().clone();
-        EncodedValue[] values = annotation.getValues().clone();
-        for (int i = 0; i < names.length; i++) {
-            names[i] = adjustString(names[i]);
-            values[i] = adjustEncodedValue(values[i]);
-        }
-        return new Annotation(target, annotation.getVisibility(),
-                adjustType(annotation.getTypeIndex()), names, values);
-    }
+	public EncodedValue adjustEncodedValue(EncodedValue encodedValue) {
+		ByteArrayAnnotatedOutput out = new ByteArrayAnnotatedOutput(32);
+		new EncodedValueTransformer(encodedValue, out).readValue();
+		return new EncodedValue(out.toByteArray());
+	}
 
-    /**
-     * Adjust an encoded value or array.
-     */
-    private final class EncodedValueTransformer extends EncodedValueReader {
-        private final ByteOutput out;
+	public EncodedValue adjustEncodedArray(EncodedValue encodedArray) {
+		ByteArrayAnnotatedOutput out = new ByteArrayAnnotatedOutput(32);
+		new EncodedValueTransformer(encodedArray, out).readArray();
+		return new EncodedValue(out.toByteArray());
+	}
 
-        public EncodedValueTransformer(EncodedValue encodedValue, ByteOutput out) {
-            super(encodedValue);
-            this.out = out;
-        }
+	public Annotation adjust(Annotation annotation) {
+		int[] names = annotation.getNames().clone();
+		EncodedValue[] values = annotation.getValues().clone();
+		for (int i = 0; i < names.length; i++) {
+			names[i] = adjustString(names[i]);
+			values[i] = adjustEncodedValue(values[i]);
+		}
+		return new Annotation(target, annotation.getVisibility(),
+				adjustType(annotation.getTypeIndex()), names, values);
+	}
 
-        protected void visitArray(int size) {
-            Leb128Utils.writeUnsignedLeb128(out, size);
-        }
+	/**
+	 * Adjust an encoded value or array.
+	 */
+	private final class EncodedValueTransformer extends EncodedValueReader {
+		private final ByteOutput out;
 
-        protected void visitAnnotation(int typeIndex, int size) {
-            Leb128Utils.writeUnsignedLeb128(out, adjustType(typeIndex));
-            Leb128Utils.writeUnsignedLeb128(out, size);
-        }
+		public EncodedValueTransformer(EncodedValue encodedValue, ByteOutput out) {
+			super(encodedValue);
+			this.out = out;
+		}
 
-        protected void visitAnnotationName(int index) {
-            Leb128Utils.writeUnsignedLeb128(out, adjustString(index));
-        }
+		protected void visitArray(int size) {
+			Leb128Utils.writeUnsignedLeb128(out, size);
+		}
 
-        protected void visitPrimitive(int argAndType, int type, int arg, int size) {
-            out.writeByte(argAndType);
-            copyBytes(in, out, size);
-        }
+		protected void visitAnnotation(int typeIndex, int size) {
+			Leb128Utils.writeUnsignedLeb128(out, adjustType(typeIndex));
+			Leb128Utils.writeUnsignedLeb128(out, size);
+		}
 
-        protected void visitString(int type, int index) {
-            writeTypeAndSizeAndIndex(type, adjustString(index));
-        }
+		protected void visitAnnotationName(int index) {
+			Leb128Utils.writeUnsignedLeb128(out, adjustString(index));
+		}
 
-        protected void visitType(int type, int index) {
-            writeTypeAndSizeAndIndex(type, adjustType(index));
-        }
+		protected void visitPrimitive(int argAndType, int type, int arg, int size) {
+			out.writeByte(argAndType);
+			copyBytes(in, out, size);
+		}
 
-        protected void visitField(int type, int index) {
-            writeTypeAndSizeAndIndex(type, adjustField(index));
-        }
+		protected void visitString(int type, int index) {
+			writeTypeAndSizeAndIndex(type, adjustString(index));
+		}
 
-        protected void visitMethod(int type, int index) {
-            writeTypeAndSizeAndIndex(type, adjustMethod(index));
-        }
+		protected void visitType(int type, int index) {
+			writeTypeAndSizeAndIndex(type, adjustType(index));
+		}
 
-        protected void visitArrayValue(int argAndType) {
-            out.writeByte(argAndType);
-        }
+		protected void visitField(int type, int index) {
+			writeTypeAndSizeAndIndex(type, adjustField(index));
+		}
 
-        protected void visitAnnotationValue(int argAndType) {
-            out.writeByte(argAndType);
-        }
+		protected void visitMethod(int type, int index) {
+			writeTypeAndSizeAndIndex(type, adjustMethod(index));
+		}
 
-        protected void visitEncodedBoolean(int argAndType) {
-            out.writeByte(argAndType);
-        }
+		protected void visitArrayValue(int argAndType) {
+			out.writeByte(argAndType);
+		}
 
-        protected void visitEncodedNull(int argAndType) {
-            out.writeByte(argAndType);
-        }
+		protected void visitAnnotationValue(int argAndType) {
+			out.writeByte(argAndType);
+		}
 
-        private void writeTypeAndSizeAndIndex(int type, int index) {
-            int byteCount;
-            if (Unsigned.compare(index, 0xff) <= 0) {
-                byteCount = 1;
-            } else if (Unsigned.compare(index, 0xffff) <= 0) {
-                byteCount = 2;
-            } else if (Unsigned.compare(index, 0xffffff) <= 0) {
-                byteCount = 3;
-            } else {
-                byteCount = 4;
-            }
-            int argAndType = ((byteCount - 1) << 5) | type;
-            out.writeByte(argAndType);
+		protected void visitEncodedBoolean(int argAndType) {
+			out.writeByte(argAndType);
+		}
 
-            for (int i = 0; i < byteCount; i++) {
-                out.writeByte(index & 0xff);
-                index >>>= 8;
-            }
-        }
+		protected void visitEncodedNull(int argAndType) {
+			out.writeByte(argAndType);
+		}
 
-        private void copyBytes(ByteInput in, ByteOutput out, int size) {
-            for (int i = 0; i < size; i++) {
-                out.writeByte(in.readByte());
-            }
-        }
-    }
+		private void writeTypeAndSizeAndIndex(int type, int index) {
+			int byteCount;
+			if (Unsigned.compare(index, 0xff) <= 0) {
+				byteCount = 1;
+			} else if (Unsigned.compare(index, 0xffff) <= 0) {
+				byteCount = 2;
+			} else if (Unsigned.compare(index, 0xffffff) <= 0) {
+				byteCount = 3;
+			} else {
+				byteCount = 4;
+			}
+			int argAndType = ((byteCount - 1) << 5) | type;
+			out.writeByte(argAndType);
+
+			for (int i = 0; i < byteCount; i++) {
+				out.writeByte(index & 0xff);
+				index >>>= 8;
+			}
+		}
+
+		private void copyBytes(ByteInput in, ByteOutput out, int size) {
+			for (int i = 0; i < size; i++) {
+				out.writeByte(in.readByte());
+			}
+		}
+	}
 }

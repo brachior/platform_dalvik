@@ -86,7 +86,7 @@ public abstract class CstBaseMethodRef
 
     /** {@inheritDoc} */
     @Override
-    protected final int compareTo0(Constant other) {
+    protected int compareTo0(Constant other) {
         int cmp = super.compareTo0(other);
 
         if (cmp != 0) {

@@ -461,6 +461,9 @@ public class EscapeAnalysis {
             case RegOps.INVOKE_SUPER:
             case RegOps.INVOKE_DIRECT:
             case RegOps.INVOKE_INTERFACE:
+            case RegOps.INVOKE_GENERIC:
+            case RegOps.INVOKE_EXACT:
+            case RegOps.INVOKE_DYNAMIC:
             case RegOps.RETURN:
             case RegOps.THROW:
                 // These operations cause an object to escape interprocedurally

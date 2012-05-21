@@ -103,6 +103,12 @@ public final class RopToDop {
     //     Opcodes.IF_GEZ
     //     Opcodes.IF_GTZ
     //     Opcodes.IF_LEZ
+    //     Opcodes.CONST_METHODTYPE
+    //     Opcodes.CONST_METHODHANDLE
+    //     Opcodes.INVOKE_EXACT
+    //     Opcodes.INVOKE_GENERIC
+    //     Opcodes.INVOKE_EXACT_RANGE
+    //     Opcodes.INVOKE_GENERIC_RANGE
     //     Opcodes.AGET
     //     Opcodes.AGET_WIDE
     //     Opcodes.AGET_OBJECT
@@ -150,6 +156,7 @@ public final class RopToDop {
     //     Opcodes.INVOKE_DIRECT
     //     Opcodes.INVOKE_STATIC
     //     Opcodes.INVOKE_INTERFACE
+    //     Opcodes.INVOKE_DYNAMIC
     //     Opcodes.NEG_INT
     //     Opcodes.NOT_INT
     //     Opcodes.NEG_LONG
@@ -489,7 +496,11 @@ public final class RopToDop {
             case RegOps.INVOKE_VIRTUAL:   return Dops.INVOKE_VIRTUAL;
             case RegOps.INVOKE_SUPER:     return Dops.INVOKE_SUPER;
             case RegOps.INVOKE_DIRECT:    return Dops.INVOKE_DIRECT;
+
             case RegOps.INVOKE_INTERFACE: return Dops.INVOKE_INTERFACE;
+            case RegOps.INVOKE_GENERIC:   return Dops.INVOKE_GENERIC;
+            case RegOps.INVOKE_EXACT:     return Dops.INVOKE_EXACT;
+            case RegOps.INVOKE_DYNAMIC:   return Dops.INVOKE_DYNAMIC;
             case RegOps.NEW_ARRAY:        return Dops.NEW_ARRAY;
             case RegOps.FILLED_NEW_ARRAY: return Dops.FILLED_NEW_ARRAY;
             case RegOps.FILL_ARRAY_DATA:  return Dops.FILL_ARRAY_DATA;

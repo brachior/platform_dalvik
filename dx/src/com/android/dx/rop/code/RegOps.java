@@ -297,6 +297,27 @@ public final class RegOps {
     public static final int FILL_ARRAY_DATA = 57;
 
     /**
+     * {@code Tr, T0, T1...: any types; r: Tr; x: MethodHandle; m: method handle exact call
+     * spec; y0: T0; y1: T1 ... :: r = x.m(y0, y1, ...)} (call any
+     * method)
+     */
+    public static final int INVOKE_EXACT = 58;
+
+    /**
+     * {@code Tr, T0, T1...: any types; r: Tr; x: MethodHandle; m: method handle generic call
+     * spec; y0: T0; y1: T1 ... :: r = x.m(y0, y1, ...)} (call any
+     * method)
+     */
+    public static final int INVOKE_GENERIC = 59;
+
+    /**
+     * {@code Tr, T0, T1...: any types; r: Tr; m: static method spec;
+     * y0: T0; y1: T1 ... :: r = m(y0, y1, ...)} (call any
+     * method)
+     */
+    public static final int INVOKE_DYNAMIC = 60;
+
+    /**
      * This class is uninstantiable.
      */
     private RegOps() {
@@ -364,6 +385,9 @@ public final class RegOps {
             case INVOKE_SUPER: return "invoke-super";
             case INVOKE_DIRECT: return "invoke-direct";
             case INVOKE_INTERFACE: return "invoke-interface";
+            case INVOKE_GENERIC: return "invoke-generic";
+            case INVOKE_EXACT: return "invoke-exact";
+            case INVOKE_DYNAMIC: return "invoke-dynamic";
             case MOVE_RESULT: return "move-result";
             case MOVE_RESULT_PSEUDO: return "move-result-pseudo";
             case FILL_ARRAY_DATA: return "fill-array-data";

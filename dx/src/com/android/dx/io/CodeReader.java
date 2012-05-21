@@ -99,11 +99,13 @@ public final class CodeReader {
     private void callVisit(DecodedInstruction[] all, DecodedInstruction one) {
         Visitor visitor = null;
 
-        switch (OpcodeInfo.getIndexType(one.getOpcode())) {
+		switch (OpcodeInfo.getIndexType(one.getOpcode())) {
             case STRING_REF: visitor = stringVisitor; break;
             case TYPE_REF:   visitor = typeVisitor;   break;
             case FIELD_REF:  visitor = fieldVisitor;  break;
             case METHOD_REF: visitor = methodVisitor; break;
+		default:
+			break;
         }
 
         if (visitor == null) {

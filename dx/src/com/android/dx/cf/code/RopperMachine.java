@@ -48,54 +48,80 @@ import java.util.ArrayList;
  * Machine implementation for use by {@link Ropper}.
  */
 /*package*/ final class RopperMachine extends ValueAwareMachine {
-    /** {@code non-null;} array reflection class */
+    /**
+     * {@code non-null;} array reflection class
+     */
     private static final CstType ARRAY_REFLECT_TYPE =
-        new CstType(Type.internClassName("java/lang/reflect/Array"));
+            new CstType(Type.internClassName("java/lang/reflect/Array"));
 
     /**
      * {@code non-null;} method constant for use in converting
      * {@code multianewarray} instructions
      */
     private static final CstMethodRef MULTIANEWARRAY_METHOD =
-        new CstMethodRef(ARRAY_REFLECT_TYPE,
-                         new CstNat(new CstString("newInstance"),
-                                    new CstString("(Ljava/lang/Class;[I)" +
-                                                "Ljava/lang/Object;")));
+            new CstMethodRef(ARRAY_REFLECT_TYPE,
+                    new CstNat(new CstString("newInstance"),
+                            new CstString("(Ljava/lang/Class;[I)" +
+                                    "Ljava/lang/Object;")));
 
-    /** {@code non-null;} {@link Ropper} controlling this instance */
+    /**
+     * {@code non-null;} {@link Ropper} controlling this instance
+     */
     private final Ropper ropper;
 
-    /** {@code non-null;} method being converted */
+    /**
+     * {@code non-null;} method being converted
+     */
     private final ConcreteMethod method;
 
-    /** {@code non-null;} translation advice */
+    /**
+     * {@code non-null;} translation advice
+     */
     private final TranslationAdvice advice;
 
-    /** max locals of the method */
+    /**
+     * max locals of the method
+     */
     private final int maxLocals;
 
-    /** {@code non-null;} instructions for the rop basic block in-progress */
+    /**
+     * {@code non-null;} instructions for the rop basic block in-progress
+     */
     private final ArrayList<Insn> insns;
 
-    /** {@code non-null;} catches for the block currently being processed */
+    /**
+     * {@code non-null;} catches for the block currently being processed
+     */
     private TypeList catches;
 
-    /** whether the catches have been used in an instruction */
+    /**
+     * whether the catches have been used in an instruction
+     */
     private boolean catchesUsed;
 
-    /** whether the block contains a {@code return} */
+    /**
+     * whether the block contains a {@code return}
+     */
     private boolean returns;
 
-    /** primary successor index */
+    /**
+     * primary successor index
+     */
     private int primarySuccessorIndex;
 
-    /** {@code >= 0;} number of extra basic blocks required */
+    /**
+     * {@code >= 0;} number of extra basic blocks required
+     */
     private int extraBlockCount;
 
-    /** true if last processed block ends with a jsr or jsr_W*/
+    /**
+     * true if last processed block ends with a jsr or jsr_W
+     */
     private boolean hasJsr;
 
-    /** true if an exception can be thrown by the last block processed */
+    /**
+     * true if an exception can be thrown by the last block processed
+     */
     private boolean blockCanThrow;
 
     /**
@@ -125,7 +151,7 @@ import java.util.ArrayList;
      * @param advice {@code non-null;} translation advice to use
      */
     public RopperMachine(Ropper ropper, ConcreteMethod method,
-            TranslationAdvice advice) {
+                         TranslationAdvice advice) {
         super(method.getEffectiveDescriptor());
 
         if (ropper == null) {
@@ -245,7 +271,7 @@ import java.util.ArrayList;
 
     /**
      * @return true if at least one of the insn processed since the last
-     * call to startBlock() can throw.
+     *         call to startBlock() can throw.
      */
     public boolean canThrow() {
         return blockCanThrow;
@@ -253,7 +279,7 @@ import java.util.ArrayList;
 
     /**
      * @return true if a JSR has ben encountered since the last call to
-     * startBlock()
+     *         startBlock()
      */
     public boolean hasJsr() {
         return hasJsr;
@@ -261,7 +287,7 @@ import java.util.ArrayList;
 
     /**
      * @return {@code true} if a {@code ret} has ben encountered since
-     * the last call to {@code startBlock()}
+     *         the last call to {@code startBlock()}
      */
     public boolean hasRet() {
         return returnAddress != null;
@@ -269,14 +295,16 @@ import java.util.ArrayList;
 
     /**
      * @return {@code null-ok;} return address of a {@code ret}
-     * instruction if encountered since last call to startBlock().
-     * {@code null} if no ret instruction encountered.
+     *         instruction if encountered since last call to startBlock().
+     *         {@code null} if no ret instruction encountered.
      */
     public ReturnAddress getReturnAddress() {
         return returnAddress;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void run(Frame frame, int offset, int opcode) {
         /*
@@ -346,8 +374,8 @@ import java.util.ArrayList;
                 RegisterSpec scratch = scratchRegs[which];
                 TypeBearer type = scratch.getTypeBearer();
                 insns.add(new PlainInsn(Rops.opMove(type), pos,
-                                        scratch.withReg(stackPointer),
-                                        scratch));
+                        scratch.withReg(stackPointer),
+                        scratch));
                 stackPointer += type.getType().getCategory();
             }
             return;
@@ -371,7 +399,7 @@ import java.util.ArrayList;
              * dimensions.
              */
             RegisterSpec dimsReg =
-                RegisterSpec.make(dest.getNextReg(), Type.INT_ARRAY);
+                    RegisterSpec.make(dest.getNextReg(), Type.INT_ARRAY);
             rop = Rops.opFilledNewArray(Type.INT_ARRAY, sourceCount);
             insn = new ThrowingCstInsn(rop, pos, sources, catches,
                     CstType.INT_ARRAY);
@@ -399,7 +427,7 @@ import java.util.ArrayList;
             }
 
             RegisterSpec classReg =
-                RegisterSpec.make(dest.getReg(), Type.CLASS);
+                    RegisterSpec.make(dest.getReg(), Type.CLASS);
 
             if (componentType.isPrimitive()) {
                 /*
@@ -408,18 +436,18 @@ import java.util.ArrayList;
                  * TYPE class.
                  */
                 CstFieldRef typeField =
-                    CstFieldRef.forPrimitiveType(componentType);
+                        CstFieldRef.forPrimitiveType(componentType);
                 insn = new ThrowingCstInsn(Rops.GET_STATIC_OBJECT, pos,
-                                           RegisterSpecList.EMPTY,
-                                           catches, typeField);
+                        RegisterSpecList.EMPTY,
+                        catches, typeField);
             } else {
                 /*
                  * The component type is an object type, so just make a
                  * normal class reference.
                  */
                 insn = new ThrowingCstInsn(Rops.CONST_OBJECT, pos,
-                                           RegisterSpecList.EMPTY, catches,
-                                           new CstType(componentType));
+                        RegisterSpecList.EMPTY, catches,
+                        new CstType(componentType));
             }
 
             insns.add(insn);
@@ -438,7 +466,7 @@ import java.util.ArrayList;
              */
 
             RegisterSpec objectReg =
-                RegisterSpec.make(dest.getReg(), Type.OBJECT);
+                    RegisterSpec.make(dest.getReg(), Type.OBJECT);
 
             insn = new ThrowingCstInsn(
                     Rops.opInvokeStatic(MULTIANEWARRAY_METHOD.getPrototype()),
@@ -465,7 +493,7 @@ import java.util.ArrayList;
             return;
         } else if (opcode == ByteOps.RET) {
             try {
-                returnAddress = (ReturnAddress)arg(0);
+                returnAddress = (ReturnAddress) arg(0);
             } catch (ClassCastException ex) {
                 throw new RuntimeException(
                         "Argument to RET was not a ReturnAddress", ex);
@@ -487,7 +515,7 @@ import java.util.ArrayList;
 
             moveResult = new PlainInsn(
                     Rops.opMoveResult(((CstMethodRef) cst).getPrototype()
-                    .getReturnType()), pos, dest, RegisterSpecList.EMPTY);
+                            .getReturnType()), pos, dest, RegisterSpecList.EMPTY);
 
             dest = null;
         } else if (dest != null && rop.canThrow()) {
@@ -522,8 +550,8 @@ import java.util.ArrayList;
             TypeBearer lastType = sources.get(1).getTypeBearer();
 
             if ((lastType.isConstant() || firstType.isConstant()) &&
-                 advice.hasConstantOperation(rop, sources.get(0),
-                                             sources.get(1))) {
+                    advice.hasConstantOperation(rop, sources.get(0),
+                            sources.get(1))) {
 
                 if (lastType.isConstant()) {
                     /*
@@ -566,7 +594,7 @@ import java.util.ArrayList;
             if (cases.size() == 0) {
                 // It's a default-only switch statement. It can happen!
                 insn = new PlainInsn(Rops.GOTO, pos, null,
-                                     RegisterSpecList.EMPTY);
+                        RegisterSpecList.EMPTY);
                 primarySuccessorIndex = 0;
             } else {
                 IntList values = cases.getValues();
@@ -584,8 +612,8 @@ import java.util.ArrayList;
                 TypeBearer type = source.getTypeBearer();
                 if (source.getReg() != 0) {
                     insns.add(new PlainInsn(Rops.opMove(type), pos,
-                                            RegisterSpec.make(0, type),
-                                            source));
+                            RegisterSpec.make(0, type),
+                            source));
                 }
             }
             insn = new PlainInsn(Rops.GOTO, pos, null, RegisterSpecList.EMPTY);
@@ -595,7 +623,7 @@ import java.util.ArrayList;
         } else if (cst != null) {
             if (canThrow) {
                 insn =
-                    new ThrowingCstInsn(rop, pos, sources, catches, cst);
+                        new ThrowingCstInsn(rop, pos, sources, catches, cst);
                 catchesUsed = true;
                 primarySuccessorIndex = catches.size();
             } else {
@@ -645,9 +673,9 @@ import java.util.ArrayList;
      * Helper for {@link #run}, which gets the list of sources for the.
      * instruction.
      *
-     * @param opcode the opcode being translated
+     * @param opcode       the opcode being translated
      * @param stackPointer {@code >= 0;} the stack pointer after the
-     * instruction's arguments have been popped
+     *                     instruction's arguments have been popped
      * @return {@code non-null;} the sources
      */
     private RegisterSpecList getSources(int opcode, int stackPointer) {
@@ -719,7 +747,7 @@ import java.util.ArrayList;
     /**
      * Sets or updates the information about the return block.
      *
-     * @param op {@code non-null;} the opcode to use
+     * @param op  {@code non-null;} the opcode to use
      * @param pos {@code non-null;} the position to use
      */
     private void updateReturnOp(Rop op, SourcePosition pos) {
@@ -737,7 +765,7 @@ import java.util.ArrayList;
         } else {
             if (returnOp != op) {
                 throw new SimException("return op mismatch: " + op + ", " +
-                                       returnOp);
+                        returnOp);
             }
 
             if (pos.getLine() > returnPosition.getLine()) {
@@ -908,6 +936,20 @@ import java.util.ArrayList;
                 return RegOps.PUT_FIELD;
             }
             case ByteOps.INVOKEVIRTUAL: {
+                /**
+                 * Trap call to MethodHandle.invokeExact/invoke
+                 */
+                CstMethodRef ref = (CstMethodRef) cst;
+                if (ref.getDefiningClass().getType() == Type.METHODHANDLE) {
+                    String methodName = ref.getNat().getName().getString();
+                    if (methodName.equals("invoke")) {
+                        return RegOps.INVOKE_GENERIC;
+                    } else {
+                        if (methodName.equals("invokeExact")) {
+                            return RegOps.INVOKE_EXACT;
+                        }
+                    }
+                }
                 return RegOps.INVOKE_VIRTUAL;
             }
             case ByteOps.INVOKESPECIAL: {
@@ -919,8 +961,8 @@ import java.util.ArrayList;
                  */
                 CstMethodRef ref = (CstMethodRef) cst;
                 if (ref.isInstanceInit() ||
-                    (ref.getDefiningClass() == method.getDefiningClass()) ||
-                    !method.getAccSuper()) {
+                        (ref.getDefiningClass() == method.getDefiningClass()) ||
+                        !method.getAccSuper()) {
                     return RegOps.INVOKE_DIRECT;
                 }
                 return RegOps.INVOKE_SUPER;
@@ -930,6 +972,9 @@ import java.util.ArrayList;
             }
             case ByteOps.INVOKEINTERFACE: {
                 return RegOps.INVOKE_INTERFACE;
+            }
+            case ByteOps.INVOKEDYNAMIC: {
+                return RegOps.INVOKE_DYNAMIC;
             }
             case ByteOps.NEW: {
                 return RegOps.NEW_INSTANCE;

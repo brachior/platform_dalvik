@@ -27,6 +27,10 @@ import static com.android.dx.cf.cst.ConstantTags.CONSTANT_Methodref;
 import static com.android.dx.cf.cst.ConstantTags.CONSTANT_NameAndType;
 import static com.android.dx.cf.cst.ConstantTags.CONSTANT_String;
 import static com.android.dx.cf.cst.ConstantTags.CONSTANT_Utf8;
+import static com.android.dx.cf.cst.ConstantTags.CONSTANT_MethodType;
+import static com.android.dx.cf.cst.ConstantTags.CONSTANT_MethodHandle;
+import static com.android.dx.cf.cst.ConstantTags.CONSTANT_InvokeDynamic;
+
 import com.android.dx.cf.iface.ParseException;
 import com.android.dx.cf.iface.ParseObserver;
 import com.android.dx.rop.cst.Constant;
@@ -35,8 +39,12 @@ import com.android.dx.rop.cst.CstFieldRef;
 import com.android.dx.rop.cst.CstFloat;
 import com.android.dx.rop.cst.CstInteger;
 import com.android.dx.rop.cst.CstInterfaceMethodRef;
+import com.android.dx.rop.cst.CstInvokeDynamic;
 import com.android.dx.rop.cst.CstLong;
+import com.android.dx.rop.cst.CstMemberRef;
+import com.android.dx.rop.cst.CstMethodHandle;
 import com.android.dx.rop.cst.CstMethodRef;
+import com.android.dx.rop.cst.CstMethodType;
 import com.android.dx.rop.cst.CstNat;
 import com.android.dx.rop.cst.CstString;
 import com.android.dx.rop.cst.CstType;
@@ -44,29 +52,39 @@ import com.android.dx.rop.cst.StdConstantPool;
 import com.android.dx.rop.type.Type;
 import com.android.dx.util.ByteArray;
 import com.android.dx.util.Hex;
+
 import java.util.BitSet;
 
 /**
  * Parser for a constant pool embedded in a class file.
  */
 public final class ConstantPoolParser {
-    /** {@code non-null;} the bytes of the constant pool */
+    /**
+     * {@code non-null;} the bytes of the constant pool
+     */
     private final ByteArray bytes;
 
-    /** {@code non-null;} actual parsed constant pool contents */
+    /**
+     * {@code non-null;} actual parsed constant pool contents
+     */
     private final StdConstantPool pool;
 
-    /** {@code non-null;} byte offsets to each cst */
+    /**
+     * {@code non-null;} byte offsets to each cst
+     */
     private final int[] offsets;
 
     /**
-     * -1 || &gt;= 10; the end offset of this constant pool in the
-     * {@code byte[]} which it came from or {@code -1} if not
-     * yet parsed
+     * -1 || &gt;= 10; the end offset of this constant pool in the {@code byte[]} which it came from
+     * or {@code -1} if not yet parsed
      */
     private int endOffset;
 
-    /** {@code null-ok;} parse observer, if any */
+    private final BitSet invokeDynamicConstantIndexes = new BitSet();
+
+    /**
+     * {@code null-ok;} parse observer, if any
+     */
     private ParseObserver observer;
 
     /**
@@ -93,8 +111,7 @@ public final class ConstantPoolParser {
     }
 
     /**
-     * Gets the end offset of this constant pool in the {@code byte[]}
-     * which it came from.
+     * Gets the end offset of this constant pool in the {@code byte[]} which it came from.
      *
      * @return {@code >= 10;} the end offset
      */
@@ -113,6 +130,10 @@ public final class ConstantPoolParser {
         return pool;
     }
 
+    public BitSet getInvokeDynamicConstantIndexes() {
+        return invokeDynamicConstantIndexes;
+    }
+
     /**
      * Runs {@link #parse} if it has not yet been run successfully.
      */
@@ -129,18 +150,18 @@ public final class ConstantPoolParser {
         determineOffsets();
 
         if (observer != null) {
-            observer.parsed(bytes, 8, 2,
-                            "constant_pool_count: " + Hex.u2(offsets.length));
+            observer.parsed(bytes, 8, 2, "constant_pool_count: " + Hex.u2(offsets.length));
             observer.parsed(bytes, 10, 0, "\nconstant_pool:");
             observer.changeIndent(1);
         }
 
         /*
-         * Track the constant value's original string type. True if constants[i] was
-         * a CONSTANT_Utf8, false for any other type including CONSTANT_string.
-         */
+           * Track the constant value's original string type. True if constants[i] was a CONSTANT_Utf8,
+           * false for any other type including CONSTANT_string.
+           */
         BitSet wasUtf8 = new BitSet(offsets.length);
 
+        /** Also track invokedynamic constant */
         for (int i = 1; i < offsets.length; i++) {
             int offset = offsets[i];
             if ((offset != 0) && (pool.getOrNull(i) == null)) {
@@ -163,9 +184,8 @@ public final class ConstantPoolParser {
                         break;
                     }
                 }
-                String human = wasUtf8.get(i)
-                        ? Hex.u2(i) + ": utf8{\"" + cst.toHuman() + "\"}"
-                        : Hex.u2(i) + ": " + cst.toString();
+                String human = wasUtf8.get(i) ? Hex.u2(i) + ": utf8{\"" + cst.toHuman() + "\"}" : Hex.u2(i)
+                        + ": " + cst.toString();
                 observer.parsed(bytes, offset, nextOffset - offset, human);
             }
 
@@ -212,11 +232,25 @@ public final class ConstantPoolParser {
                     at += bytes.getUnsignedShort(at + 1) + 3;
                     break;
                 }
+                case CONSTANT_MethodType: {
+                    lastCategory = 1;
+                    at += 3;
+                    break;
+                }
+                case CONSTANT_MethodHandle: {
+                    lastCategory = 1;
+                    at += 4;
+                    break;
+                }
+                case CONSTANT_InvokeDynamic: {
+                    lastCategory = 1;
+                    at += 5;
+                    invokeDynamicConstantIndexes.set(i);
+                    break;
+                }
                 default: {
-                    ParseException ex =
-                        new ParseException("unknown tag byte: " + Hex.u1(tag));
-                    ex.addContext("...while preparsing cst " + Hex.u2(i) +
-                                  " at offset " + Hex.u4(at));
+                    ParseException ex = new ParseException("unknown tag byte: " + Hex.u1(tag));
+                    ex.addContext("...while preparsing cst " + Hex.u2(i) + " at offset " + Hex.u4(at));
                     throw ex;
                 }
             }
@@ -226,9 +260,8 @@ public final class ConstantPoolParser {
     }
 
     /**
-     * Parses the constant for the given index if it hasn't already been
-     * parsed, also storing it in the constant pool. This will also
-     * have the side effect of parsing any entries the indicated one
+     * Parses the constant for the given index if it hasn't already been parsed, also storing it in
+     * the constant pool. This will also have the side effect of parsing any entries the indicated one
      * depends on.
      *
      * @param idx which constant
@@ -313,15 +346,33 @@ public final class ConstantPoolParser {
                     cst = new CstNat(name, descriptor);
                     break;
                 }
+                case CONSTANT_MethodType: {
+                    int descIndex = bytes.getUnsignedShort(at + 1);
+                    CstString descriptor = (CstString) parse0(descIndex, wasUtf8);
+                    cst = new CstMethodType(descriptor);
+                    break;
+                }
+                case CONSTANT_MethodHandle: {
+                    int kind = bytes.getByte(at + 1);
+                    int memberIndex = bytes.getUnsignedShort(at + 2);
+                    CstMemberRef member = (CstMemberRef) parse0(memberIndex, wasUtf8);
+                    cst = new CstMethodHandle(kind, member);
+                    break;
+                }
+                case CONSTANT_InvokeDynamic: {
+                    int offsetBSMArgs = bytes.getUnsignedShort(at + 1);
+                    int natIndex = bytes.getUnsignedShort(at + 3);
+                    CstNat nat = (CstNat) parse0(natIndex, wasUtf8);
+                    cst = new CstInvokeDynamic(offsetBSMArgs, nat);
+                    break;
+                }
             }
         } catch (ParseException ex) {
-            ex.addContext("...while parsing cst " + Hex.u2(idx) +
-                          " at offset " + Hex.u4(at));
+            ex.addContext("...while parsing cst " + Hex.u2(idx) + " at offset " + Hex.u4(at));
             throw ex;
         } catch (RuntimeException ex) {
             ParseException pe = new ParseException(ex);
-            pe.addContext("...while parsing cst " + Hex.u2(idx) +
-                          " at offset " + Hex.u4(at));
+            pe.addContext("...while parsing cst " + Hex.u2(idx) + " at offset " + Hex.u4(at));
             throw pe;
         }
 
@@ -349,4 +400,6 @@ public final class ConstantPoolParser {
             throw new ParseException(ex);
         }
     }
+
+
 }

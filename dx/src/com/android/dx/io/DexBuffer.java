@@ -151,6 +151,7 @@ public final class DexBuffer {
                 loadFrom(zipFile.getInputStream(entry));
                 zipFile.close();
             } else {
+                zipFile.close();
                 throw new DexException("Expected " + DexFormat.DEX_IN_JAR_NAME + " in " + file);
             }
         } else if (file.getName().endsWith(".dex")) {

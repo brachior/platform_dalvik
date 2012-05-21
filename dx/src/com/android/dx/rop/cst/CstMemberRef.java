@@ -47,7 +47,7 @@ public abstract class CstMemberRef extends TypedConstant {
 
     /** {@inheritDoc} */
     @Override
-    public final boolean equals(Object other) {
+    public boolean equals(Object other) {
         if ((other == null) || (getClass() != other.getClass())) {
             return false;
         }
@@ -59,7 +59,7 @@ public abstract class CstMemberRef extends TypedConstant {
 
     /** {@inheritDoc} */
     @Override
-    public final int hashCode() {
+    public int hashCode() {
         return (definingClass.hashCode() * 31) ^ nat.hashCode();
     }
 
@@ -98,7 +98,7 @@ public abstract class CstMemberRef extends TypedConstant {
     }
 
     /** {@inheritDoc} */
-    public final String toHuman() {
+    public String toHuman() {
         return definingClass.toHuman() + '.' + nat.toHuman();
     }
 

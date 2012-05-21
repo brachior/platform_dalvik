@@ -18,6 +18,7 @@ package com.android.dx.dex;
 
 import com.android.dx.io.DexBuffer;
 import com.android.dx.util.DexException;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
@@ -28,8 +29,8 @@ import java.util.Arrays;
 public final class TableOfContents {
 
     /*
-     * TODO: factor out ID constants.
-     */
+      * TODO: factor out ID constants.
+      */
 
     public final Section header = new Section(0x0000);
     public final Section stringIds = new Section(0x0001);
@@ -38,6 +39,9 @@ public final class TableOfContents {
     public final Section fieldIds = new Section(0x0004);
     public final Section methodIds = new Section(0x0005);
     public final Section classDefs = new Section(0x0006);
+    public final Section methodtypeIds = new Section(0x0007);
+    public final Section methodhandleIds = new Section(0x0008);
+    public final Section invokedynamicIds = new Section(0x0009);
     public final Section mapList = new Section(0x1000);
     public final Section typeLists = new Section(0x1001);
     public final Section annotationSetRefLists = new Section(0x1002);
@@ -49,11 +53,11 @@ public final class TableOfContents {
     public final Section annotations = new Section(0x2004);
     public final Section encodedArrays = new Section(0x2005);
     public final Section annotationsDirectories = new Section(0x2006);
-    public final Section[] sections = {
-            header, stringIds, typeIds, protoIds, fieldIds, methodIds, classDefs, mapList,
-            typeLists, annotationSetRefLists, annotationSets, classDatas, codes, stringDatas,
-            debugInfos, annotations, encodedArrays, annotationsDirectories
-    };
+    public final Section[] sections =
+            {header, stringIds, typeIds, protoIds, fieldIds, methodIds, classDefs,
+                    methodtypeIds, methodhandleIds, invokedynamicIds,
+                    mapList, typeLists, annotationSetRefLists, annotationSets, classDatas, codes, stringDatas,
+                    debugInfos, annotations, encodedArrays, annotationsDirectories};
 
     public int checksum;
     public byte[] signature;
@@ -86,17 +90,20 @@ public final class TableOfContents {
         fileSize = headerIn.readInt();
         int headerSize = headerIn.readInt();
         if (headerSize != SizeOf.HEADER_ITEM) {
-            throw new DexException("Unexpected header: 0x" + Integer.toHexString(headerSize));
+            throw new DexException("Unexpected header: 0x"
+                    + Integer.toHexString(headerSize));
         }
         int endianTag = headerIn.readInt();
         if (endianTag != DexFormat.ENDIAN_TAG) {
-            throw new DexException("Unexpected endian tag: 0x" + Integer.toHexString(endianTag));
+            throw new DexException("Unexpected endian tag: 0x"
+                    + Integer.toHexString(endianTag));
         }
         linkSize = headerIn.readInt();
         linkOff = headerIn.readInt();
         mapList.off = headerIn.readInt();
         if (mapList.off == 0) {
-            throw new DexException("Cannot merge dex files that do not contain a map");
+            throw new DexException(
+                    "Cannot merge dex files that do not contain a map");
         }
         stringIds.size = headerIn.readInt();
         stringIds.off = headerIn.readInt();
@@ -110,6 +117,12 @@ public final class TableOfContents {
         methodIds.off = headerIn.readInt();
         classDefs.size = headerIn.readInt();
         classDefs.off = headerIn.readInt();
+        methodtypeIds.size = headerIn.readInt();
+        methodtypeIds.off = headerIn.readInt();
+        methodhandleIds.size = headerIn.readInt();
+        methodhandleIds.off = headerIn.readInt();
+        invokedynamicIds.size = headerIn.readInt();
+        invokedynamicIds.off = headerIn.readInt();
         dataSize = headerIn.readInt();
         dataOff = headerIn.readInt();
     }
@@ -126,14 +139,16 @@ public final class TableOfContents {
 
             if ((section.size != 0 && section.size != size)
                     || (section.off != -1 && section.off != offset)) {
-                throw new DexException("Unexpected map value for 0x" + Integer.toHexString(type));
+                throw new DexException(
+                        "Unexpected map value for 0x" + Integer.toHexString(type));
             }
 
             section.size = size;
             section.off = offset;
 
             if (previous != null && previous.off > section.off) {
-                throw new DexException("Map is unsorted at " + previous + ", " + section);
+                throw new DexException(
+                        "Map is unsorted at " + previous + ", " + section);
             }
 
             previous = section;
@@ -187,6 +202,12 @@ public final class TableOfContents {
         out.writeInt(methodIds.off);
         out.writeInt(classDefs.size);
         out.writeInt(classDefs.off);
+        out.writeInt(methodtypeIds.size);
+        out.writeInt(methodtypeIds.off);
+        out.writeInt(methodhandleIds.size);
+        out.writeInt(methodhandleIds.off);
+        out.writeInt(invokedynamicIds.size);
+        out.writeInt(invokedynamicIds.off);
         out.writeInt(dataSize);
         out.writeInt(dataOff);
     }
@@ -231,7 +252,8 @@ public final class TableOfContents {
             return 0;
         }
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             return String.format("Section[type=%#x,off=%#x,size=%#x]", type, off, size);
         }
     }

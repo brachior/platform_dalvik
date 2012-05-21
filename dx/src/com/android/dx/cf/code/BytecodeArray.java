@@ -772,6 +772,13 @@ public final class BytecodeArray {
                                           count | (expectZero << 8));
                     return 5;
                 }
+                case ByteOps.INVOKEDYNAMIC: {
+                    int idx = bytes.getUnsignedShort(offset + 1);
+                    int expectZero = bytes.getUnsignedShort(offset + 3);
+                    Constant cst = pool.get(idx);
+                    visitor.visitConstant(opcode, offset, 4, cst, 0);
+                    return 4;
+                }
                 case ByteOps.NEWARRAY: {
                     return parseNewarray(offset, visitor);
                 }

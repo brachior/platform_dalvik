@@ -52,7 +52,9 @@ import com.android.dx.io.Opcodes;
  * them.
  */
 public final class Dops {
-    /** {@code non-null;} array containing all the standard instances */
+    /**
+     * {@code non-null;} array containing all the standard instances
+     */
     private static final Dop[] DOPS;
 
     /**
@@ -62,8 +64,8 @@ public final class Dops {
      * constant.
      */
     public static final Dop SPECIAL_FORMAT =
-        new Dop(Opcodes.SPECIAL_FORMAT, Opcodes.SPECIAL_FORMAT,
-                Opcodes.NO_NEXT, SpecialFormat.THE_ONE, false);
+            new Dop(Opcodes.SPECIAL_FORMAT, Opcodes.SPECIAL_FORMAT,
+                    Opcodes.NO_NEXT, SpecialFormat.THE_ONE, false);
 
     // BEGIN(dops); GENERATED AUTOMATICALLY BY opcode-gen
     public static final Dop NOP =
@@ -314,6 +316,30 @@ public final class Dops {
         new Dop(Opcodes.IF_LEZ, Opcodes.IF_LEZ,
             Opcodes.NO_NEXT, Form21t.THE_ONE, false);
 
+    public static final Dop CONST_METHODTYPE =
+        new Dop(Opcodes.CONST_METHODTYPE, Opcodes.CONST_METHODTYPE,
+            Opcodes.CONST_METHODTYPE_JUMBO, Form21c.THE_ONE, true);
+
+    public static final Dop CONST_METHODHANDLE =
+        new Dop(Opcodes.CONST_METHODHANDLE, Opcodes.CONST_METHODHANDLE,
+            Opcodes.CONST_METHODHANDLE_JUMBO, Form21c.THE_ONE, true);
+
+    public static final Dop INVOKE_EXACT =
+        new Dop(Opcodes.INVOKE_EXACT, Opcodes.INVOKE_EXACT,
+            Opcodes.INVOKE_EXACT_JUMBO, Form3rc.THE_ONE, false);
+
+    public static final Dop INVOKE_GENERIC =
+        new Dop(Opcodes.INVOKE_GENERIC, Opcodes.INVOKE_GENERIC,
+            Opcodes.INVOKE_GENERIC_JUMBO, Form3rc.THE_ONE, false);
+
+    public static final Dop INVOKE_EXACT_RANGE =
+        new Dop(Opcodes.INVOKE_EXACT_RANGE, Opcodes.INVOKE_EXACT,
+            Opcodes.INVOKE_EXACT_JUMBO, Form3rc.THE_ONE, false);
+
+    public static final Dop INVOKE_GENERIC_RANGE =
+        new Dop(Opcodes.INVOKE_GENERIC_RANGE, Opcodes.INVOKE_GENERIC,
+            Opcodes.INVOKE_GENERIC_JUMBO, Form3rc.THE_ONE, false);
+
     public static final Dop AGET =
         new Dop(Opcodes.AGET, Opcodes.AGET,
             Opcodes.NO_NEXT, Form23x.THE_ONE, true);
@@ -502,6 +528,10 @@ public final class Dops {
         new Dop(Opcodes.INVOKE_INTERFACE, Opcodes.INVOKE_INTERFACE,
             Opcodes.INVOKE_INTERFACE_RANGE, Form35c.THE_ONE, false);
 
+    public static final Dop INVOKE_DYNAMIC =
+        new Dop(Opcodes.INVOKE_DYNAMIC, Opcodes.INVOKE_DYNAMIC,
+            Opcodes.INVOKE_DYNAMIC_RANGE, Form35c.THE_ONE, false);
+
     public static final Dop INVOKE_VIRTUAL_RANGE =
         new Dop(Opcodes.INVOKE_VIRTUAL_RANGE, Opcodes.INVOKE_VIRTUAL,
             Opcodes.INVOKE_VIRTUAL_JUMBO, Form3rc.THE_ONE, false);
@@ -521,6 +551,10 @@ public final class Dops {
     public static final Dop INVOKE_INTERFACE_RANGE =
         new Dop(Opcodes.INVOKE_INTERFACE_RANGE, Opcodes.INVOKE_INTERFACE,
             Opcodes.INVOKE_INTERFACE_JUMBO, Form3rc.THE_ONE, false);
+
+    public static final Dop INVOKE_DYNAMIC_RANGE =
+        new Dop(Opcodes.INVOKE_DYNAMIC_RANGE, Opcodes.INVOKE_DYNAMIC,
+            Opcodes.INVOKE_DYNAMIC_JUMBO, Form3rc.THE_ONE, false);
 
     public static final Dop NEG_INT =
         new Dop(Opcodes.NEG_INT, Opcodes.NEG_INT,
@@ -1094,6 +1128,26 @@ public final class Dops {
         new Dop(Opcodes.INVOKE_INTERFACE_JUMBO, Opcodes.INVOKE_INTERFACE,
             Opcodes.NO_NEXT, Form5rc.THE_ONE, false);
 
+    public static final Dop INVOKE_EXACT_JUMBO =
+        new Dop(Opcodes.INVOKE_EXACT_JUMBO, Opcodes.INVOKE_EXACT,
+            Opcodes.NO_NEXT, Form5rc.THE_ONE, false);
+
+    public static final Dop INVOKE_GENERIC_JUMBO =
+        new Dop(Opcodes.INVOKE_GENERIC_JUMBO, Opcodes.INVOKE_GENERIC,
+            Opcodes.NO_NEXT, Form5rc.THE_ONE, false);
+
+    public static final Dop INVOKE_DYNAMIC_JUMBO =
+        new Dop(Opcodes.INVOKE_DYNAMIC_JUMBO, Opcodes.INVOKE_DYNAMIC,
+            Opcodes.NO_NEXT, Form5rc.THE_ONE, false);
+
+    public static final Dop CONST_METHODTYPE_JUMBO =
+        new Dop(Opcodes.CONST_METHODTYPE_JUMBO, Opcodes.CONST_METHODTYPE,
+            Opcodes.NO_NEXT, Form41c.THE_ONE, false);
+
+    public static final Dop CONST_METHODHANDLE_JUMBO =
+        new Dop(Opcodes.CONST_METHODHANDLE_JUMBO, Opcodes.CONST_METHODHANDLE,
+            Opcodes.NO_NEXT, Form41c.THE_ONE, false);
+
     // END(dops)
 
     // Static initialization.
@@ -1165,6 +1219,12 @@ public final class Dops {
         set(IF_GEZ);
         set(IF_GTZ);
         set(IF_LEZ);
+        set(CONST_METHODTYPE);
+        set(CONST_METHODHANDLE);
+        set(INVOKE_EXACT);
+        set(INVOKE_GENERIC);
+        set(INVOKE_EXACT_RANGE);
+        set(INVOKE_GENERIC_RANGE);
         set(AGET);
         set(AGET_WIDE);
         set(AGET_OBJECT);
@@ -1212,11 +1272,13 @@ public final class Dops {
         set(INVOKE_DIRECT);
         set(INVOKE_STATIC);
         set(INVOKE_INTERFACE);
+        set(INVOKE_DYNAMIC);
         set(INVOKE_VIRTUAL_RANGE);
         set(INVOKE_SUPER_RANGE);
         set(INVOKE_DIRECT_RANGE);
         set(INVOKE_STATIC_RANGE);
         set(INVOKE_INTERFACE_RANGE);
+        set(INVOKE_DYNAMIC_RANGE);
         set(NEG_INT);
         set(NOT_INT);
         set(NEG_LONG);
@@ -1360,6 +1422,11 @@ public final class Dops {
         set(INVOKE_DIRECT_JUMBO);
         set(INVOKE_STATIC_JUMBO);
         set(INVOKE_INTERFACE_JUMBO);
+        set(INVOKE_EXACT_JUMBO);
+        set(INVOKE_GENERIC_JUMBO);
+        set(INVOKE_DYNAMIC_JUMBO);
+        set(CONST_METHODTYPE_JUMBO);
+        set(CONST_METHODHANDLE_JUMBO);
         // END(dops-init)
     }
 
@@ -1374,7 +1441,7 @@ public final class Dops {
      * Gets the {@link Dop} for the given opcode value.
      *
      * @param opcode {@code Opcodes.MIN_VALUE..Opcodes.MAX_VALUE;} the
-     * opcode value
+     *               opcode value
      * @return {@code non-null;} the associated opcode instance
      */
     public static Dop get(int opcode) {
@@ -1396,17 +1463,17 @@ public final class Dops {
      * Gets the next {@link Dop} in the instruction fitting chain after the
      * given instance, if any.
      *
-     * @param opcode {@code non-null;} the opcode
+     * @param opcode  {@code non-null;} the opcode
      * @param options {@code non-null;} options, used to determine
-     * which opcodes are potentially off-limits
+     *                which opcodes are potentially off-limits
      * @return {@code null-ok;} the next opcode in the same family, in the
-     * chain of opcodes to try, or {@code null} if the given opcode is
-     * the last in its chain
+     *         chain of opcodes to try, or {@code null} if the given opcode is
+     *         the last in its chain
      */
     public static Dop getNextOrNull(Dop opcode, DexOptions options) {
         boolean suppressExtendedOpcodes = !options.canUseExtendedOpcodes();
 
-        for (;;) {
+        for (; ; ) {
             int nextOpcode = opcode.getNextOpcode();
 
             if (nextOpcode == Opcodes.NO_NEXT) {

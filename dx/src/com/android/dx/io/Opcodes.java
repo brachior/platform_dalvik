@@ -17,30 +17,30 @@
 package com.android.dx.io;
 
 /**
- * All the Dalvik opcode value constants. See the related spec
- * document for the meaning and instruction format of each opcode.
+ * All the Dalvik opcode value constants. See the related spec document for the
+ * meaning and instruction format of each opcode.
  */
 public final class Opcodes {
-    /**
-     * pseudo-opcode used for nonstandard format payload "instructions". TODO:
-     * Retire this concept, and start treating the payload instructions
-     * more like the rest.
-     */
-    public static final int SPECIAL_FORMAT = -1;
+	/**
+	 * pseudo-opcode used for nonstandard format payload "instructions". TODO:
+	 * Retire this concept, and start treating the payload instructions more
+	 * like the rest.
+	 */
+	public static final int SPECIAL_FORMAT = -1;
 
-    /**
-     * pseudo-opcode used to indicate there is no next opcode; used
-     * in opcode chaining lists
-     */
-    public static final int NO_NEXT = -1;
+	/**
+	 * pseudo-opcode used to indicate there is no next opcode; used in opcode
+	 * chaining lists
+	 */
+	public static final int NO_NEXT = -1;
 
-    /** minimum valid opcode value */
-    public static final int MIN_VALUE = -1;
+	/** minimum valid opcode value */
+	public static final int MIN_VALUE = -1;
 
-    /** maximum valid opcode value */
-    public static final int MAX_VALUE = 0xffff;
+	/** maximum valid opcode value */
+	public static final int MAX_VALUE = 0xffff;
 
-    // BEGIN(opcodes); GENERATED AUTOMATICALLY BY opcode-gen
+	// BEGIN(opcodes); GENERATED AUTOMATICALLY BY opcode-gen
     public static final int NOP = 0x00;
     public static final int MOVE = 0x01;
     public static final int MOVE_FROM16 = 0x02;
@@ -103,6 +103,12 @@ public final class Opcodes {
     public static final int IF_GEZ = 0x3b;
     public static final int IF_GTZ = 0x3c;
     public static final int IF_LEZ = 0x3d;
+    public static final int CONST_METHODTYPE = 0x3e;
+    public static final int CONST_METHODHANDLE = 0x3f;
+    public static final int INVOKE_EXACT = 0x40;
+    public static final int INVOKE_GENERIC = 0x41;
+    public static final int INVOKE_EXACT_RANGE = 0x42;
+    public static final int INVOKE_GENERIC_RANGE = 0x43;
     public static final int AGET = 0x44;
     public static final int AGET_WIDE = 0x45;
     public static final int AGET_OBJECT = 0x46;
@@ -150,11 +156,13 @@ public final class Opcodes {
     public static final int INVOKE_DIRECT = 0x70;
     public static final int INVOKE_STATIC = 0x71;
     public static final int INVOKE_INTERFACE = 0x72;
+    public static final int INVOKE_DYNAMIC = 0x73;
     public static final int INVOKE_VIRTUAL_RANGE = 0x74;
     public static final int INVOKE_SUPER_RANGE = 0x75;
     public static final int INVOKE_DIRECT_RANGE = 0x76;
     public static final int INVOKE_STATIC_RANGE = 0x77;
     public static final int INVOKE_INTERFACE_RANGE = 0x78;
+    public static final int INVOKE_DYNAMIC_RANGE = 0x79;
     public static final int NEG_INT = 0x7b;
     public static final int NOT_INT = 0x7c;
     public static final int NEG_LONG = 0x7d;
@@ -298,105 +306,109 @@ public final class Opcodes {
     public static final int INVOKE_DIRECT_JUMBO = 0x24ff;
     public static final int INVOKE_STATIC_JUMBO = 0x25ff;
     public static final int INVOKE_INTERFACE_JUMBO = 0x26ff;
-    // END(opcodes)
+    public static final int INVOKE_EXACT_JUMBO = 0x27ff;
+    public static final int INVOKE_GENERIC_JUMBO = 0x28ff;
+    public static final int INVOKE_DYNAMIC_JUMBO = 0x29ff;
+    public static final int CONST_METHODTYPE_JUMBO = 0x2aff;
+    public static final int CONST_METHODHANDLE_JUMBO = 0x2bff;
+	// END(opcodes)
 
-    // TODO: Generate these payload opcodes with opcode-gen.
+	// TODO: Generate these payload opcodes with opcode-gen.
 
-    /**
-     * special pseudo-opcode value for packed-switch data payload
-     * instructions
-     */
-    public static final int PACKED_SWITCH_PAYLOAD = 0x100;
+	/**
+	 * special pseudo-opcode value for packed-switch data payload instructions
+	 */
+	public static final int PACKED_SWITCH_PAYLOAD = 0x100;
 
-    /** special pseudo-opcode value for packed-switch data payload
-     * instructions
-     */
-    public static final int SPARSE_SWITCH_PAYLOAD = 0x200;
+	/**
+	 * special pseudo-opcode value for packed-switch data payload instructions
+	 */
+	public static final int SPARSE_SWITCH_PAYLOAD = 0x200;
 
-    /** special pseudo-opcode value for fill-array-data data payload
-     * instructions
-     */
-    public static final int FILL_ARRAY_DATA_PAYLOAD = 0x300;
+	/**
+	 * special pseudo-opcode value for fill-array-data data payload instructions
+	 */
+	public static final int FILL_ARRAY_DATA_PAYLOAD = 0x300;
 
-    /**
-     * This class is uninstantiable.
-     */
-    private Opcodes() {
-        // This space intentionally left blank.
-    }
+	/**
+	 * This class is uninstantiable.
+	 */
+	private Opcodes() {
+		// This space intentionally left blank.
+	}
 
-    /**
-     * Determines if the given opcode has the right "shape" to be
-     * valid. This includes the range {@code 0x01..0xfe}, the range
-     * {@code 0x00ff..0xffff} where the low-order byte is either
-     * {@code 0} or {@code 0xff}, and the special opcode values {@code
-     * SPECIAL_FORMAT} and {@code NO_NEXT}. Note that not all of the
-     * opcode values that pass this test are in fact used. This method
-     * is meant to perform a quick check to reject blatantly wrong
-     * values (e.g. when validating arguments).
-     *
-     * @param opcode the opcode value
-     * @return {@code true} iff the value has the right "shape" to be
-     * possibly valid
-     */
-    public static boolean isValidShape(int opcode) {
-        /*
-         * Note: This method bakes in knowledge that all opcodes are
-         * one of the forms:
-         *
-         *   * single byte in range 0x01..0xfe -- normal opcodes
-         *   * (byteValue << 8) -- nop and data payload opcodes
-         *   * ((byteValue << 8) | 0xff) -- 16-bit extended opcodes
-         *   * SPECIAL_FORMAT or NO_NEXT -- pseudo-opcodes
-         */
+	/**
+	 * Determines if the given opcode has the right "shape" to be valid. This
+	 * includes the range {@code 0x01..0xfe}, the range {@code 0x00ff..0xffff}
+	 * where the low-order byte is either {@code 0} or {@code 0xff}, and the
+	 * special opcode values {@code SPECIAL_FORMAT} and {@code NO_NEXT}. Note
+	 * that not all of the opcode values that pass this test are in fact used.
+	 * This method is meant to perform a quick check to reject blatantly wrong
+	 * values (e.g. when validating arguments).
+	 * 
+	 * @param opcode
+	 *            the opcode value
+	 * @return {@code true} iff the value has the right "shape" to be possibly
+	 *         valid
+	 */
+	public static boolean isValidShape(int opcode) {
+		/*
+		 * Note: This method bakes in knowledge that all opcodes are one of the
+		 * forms:
+		 * 
+		 * * single byte in range 0x01..0xfe -- normal opcodes * (byteValue <<
+		 * 8) -- nop and data payload opcodes * ((byteValue << 8) | 0xff) --
+		 * 16-bit extended opcodes * SPECIAL_FORMAT or NO_NEXT -- pseudo-opcodes
+		 */
 
-        // Note: SPECIAL_FORMAT == NO_NEXT.
-        if (opcode < SPECIAL_FORMAT) {
-            return false;
-        } else if (opcode == SPECIAL_FORMAT) {
-            return true;
-        }
+		// Note: SPECIAL_FORMAT == NO_NEXT.
+		if (opcode < SPECIAL_FORMAT) {
+			return false;
+		} else if (opcode == SPECIAL_FORMAT) {
+			return true;
+		}
 
-        int lowByte = opcode & 0xff;
-        if ((lowByte == 0) || (lowByte == 0xff)) {
-            return true;
-        }
+		int lowByte = opcode & 0xff;
+		if ((lowByte == 0) || (lowByte == 0xff)) {
+			return true;
+		}
 
-        return (opcode & 0xff00) == 0;
-    }
+		return (opcode & 0xff00) == 0;
+	}
 
-    /**
-     * Gets whether ({@code true}) or not ({@code false}) the given
-     * opcode value is an "extended" opcode (not counting the nop-like
-     * payload opcodes). Extended opcodes require a full 16-bit code
-     * unit to represent, without leaving space for an argument byte.
-     * 
-     * @param opcode the opcode value
-     * @return {@code true} iff the opcode is an "extended" opcode
-     */
-    public static boolean isExtended(int opcode) {
-        /*
-         * Note: Extended opcodes all have the form ((byteValue << 8)
-         * | 0xff).
-         */
-        return (opcode >= 0x00ff);
-    }
+	/**
+	 * Gets whether ({@code true}) or not ({@code false}) the given opcode value
+	 * is an "extended" opcode (not counting the nop-like payload opcodes).
+	 * Extended opcodes require a full 16-bit code unit to represent, without
+	 * leaving space for an argument byte.
+	 * 
+	 * @param opcode
+	 *            the opcode value
+	 * @return {@code true} iff the opcode is an "extended" opcode
+	 */
+	public static boolean isExtended(int opcode) {
+		/*
+		 * Note: Extended opcodes all have the form ((byteValue << 8) | 0xff).
+		 */
+		return (opcode >= 0x00ff);
+	}
 
-    /**
-     * Gets the opcode out of an opcode unit, the latter of which may also
-     * include one or more argument values.
-     *
-     * @param opcodeUnit the opcode-containing code unit
-     * @return the extracted opcode
-     */
-    public static int extractOpcodeFromUnit(int opcodeUnit) {
-        /*
-         * Note: This method bakes in knowledge that all opcodes are
-         * either single-byte or of the forms (byteValue << 8) or
-         * ((byteValue << 8) | 0xff).
-         */
+	/**
+	 * Gets the opcode out of an opcode unit, the latter of which may also
+	 * include one or more argument values.
+	 * 
+	 * @param opcodeUnit
+	 *            the opcode-containing code unit
+	 * @return the extracted opcode
+	 */
+	public static int extractOpcodeFromUnit(int opcodeUnit) {
+		/*
+		 * Note: This method bakes in knowledge that all opcodes are either
+		 * single-byte or of the forms (byteValue << 8) or ((byteValue << 8) |
+		 * 0xff).
+		 */
 
-        int lowByte = opcodeUnit & 0xff;
-        return ((lowByte == 0) || (lowByte == 0xff)) ? opcodeUnit : lowByte;
-    }
+		int lowByte = opcodeUnit & 0xff;
+		return ((lowByte == 0) || (lowByte == 0xff)) ? opcodeUnit : lowByte;
+	}
 }

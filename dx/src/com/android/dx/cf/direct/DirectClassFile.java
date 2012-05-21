@@ -16,7 +16,9 @@
 
 package com.android.dx.cf.direct;
 
+import com.android.dx.cf.attrib.AttBootstrapMethods;
 import com.android.dx.cf.attrib.AttSourceFile;
+import com.android.dx.cf.code.BootstrapMethodList;
 import com.android.dx.cf.cst.ConstantPoolParser;
 import com.android.dx.cf.iface.Attribute;
 import com.android.dx.cf.iface.AttributeList;
@@ -27,36 +29,38 @@ import com.android.dx.cf.iface.ParseException;
 import com.android.dx.cf.iface.ParseObserver;
 import com.android.dx.cf.iface.StdAttributeList;
 import com.android.dx.rop.code.AccessFlags;
-import com.android.dx.rop.cst.ConstantPool;
-import com.android.dx.rop.cst.CstType;
-import com.android.dx.rop.cst.CstString;
-import com.android.dx.rop.cst.StdConstantPool;
+import com.android.dx.rop.cst.*;
 import com.android.dx.rop.type.StdTypeList;
 import com.android.dx.rop.type.Type;
 import com.android.dx.rop.type.TypeList;
 import com.android.dx.util.ByteArray;
 import com.android.dx.util.Hex;
 
+import java.util.BitSet;
+
 /**
  * Class file with info taken from a {@code byte[]} or slice thereof.
  */
 public class DirectClassFile implements ClassFile {
-    /** the expected value of the ClassFile.magic field */
+    /**
+     * the expected value of the ClassFile.magic field
+     */
     private static final int CLASS_FILE_MAGIC = 0xcafebabe;
 
     /**
      * minimum {@code .class} file major version
-     *
+     * <p/>
      * See http://en.wikipedia.org/wiki/Java_class_file for an up-to-date
      * list of version numbers. Currently known (taken from that table) are:
-     *
-     *     J2SE 6.0 = 50 (0x32 hex),
-     *     J2SE 5.0 = 49 (0x31 hex),
-     *     JDK 1.4 = 48 (0x30 hex),
-     *     JDK 1.3 = 47 (0x2F hex),
-     *     JDK 1.2 = 46 (0x2E hex),
-     *     JDK 1.1 = 45 (0x2D hex).
-     *
+     * <p/>
+     * J2SE 7.0 = 51 (0x33 hex),
+     * J2SE 6.0 = 50 (0x32 hex),
+     * J2SE 5.0 = 49 (0x31 hex),
+     * JDK 1.4 = 48 (0x30 hex),
+     * JDK 1.3 = 47 (0x2F hex),
+     * JDK 1.2 = 46 (0x2E hex),
+     * JDK 1.1 = 45 (0x2D hex).
+     * <p/>
      * Valid ranges are typically of the form
      * "A.0 through B.C inclusive" where A <= B and C >= 0,
      * which is why we don't have a CLASS_FILE_MIN_MINOR_VERSION.
@@ -65,12 +69,15 @@ public class DirectClassFile implements ClassFile {
 
     /**
      * maximum {@code .class} file major version
-     *
+     * <p/>
      * Note: if you change this, please change "java.class.version" in System.java.
      */
-    private static final int CLASS_FILE_MAX_MAJOR_VERSION = 50;
+//    private static final int CLASS_FILE_MAX_MAJOR_VERSION = 50;
+    private static final int CLASS_FILE_MAX_MAJOR_VERSION = 51;
 
-    /** maximum {@code .class} file minor version */
+    /**
+     * maximum {@code .class} file minor version
+     */
     private static final int CLASS_FILE_MAX_MINOR_VERSION = 0;
 
     /**
@@ -79,7 +86,9 @@ public class DirectClassFile implements ClassFile {
      */
     private final String filePath;
 
-    /** {@code non-null;} the bytes of the file */
+    /**
+     * {@code non-null;} the bytes of the file
+     */
     private final ByteArray bytes;
 
     /**
@@ -141,10 +150,14 @@ public class DirectClassFile implements ClassFile {
      */
     private StdAttributeList attributes;
 
-    /** {@code null-ok;} attribute factory, if any */
+    /**
+     * {@code null-ok;} attribute factory, if any
+     */
     private AttributeFactory attributeFactory;
 
-    /** {@code null-ok;} parse observer, if any */
+    /**
+     * {@code null-ok;} parse observer, if any
+     */
     private ParseObserver observer;
 
     /**
@@ -165,13 +178,13 @@ public class DirectClassFile implements ClassFile {
     /**
      * Constructs an instance.
      *
-     * @param bytes {@code non-null;} the bytes of the file
-     * @param filePath {@code non-null;} the file path for the class,
-     * excluding any base directory specification
+     * @param bytes       {@code non-null;} the bytes of the file
+     * @param filePath    {@code non-null;} the file path for the class,
+     *                    excluding any base directory specification
      * @param strictParse whether to be strict about parsing; if
-     * {@code false}, this avoids doing checks that only exist
-     * for purposes of verification (such as magic number matching and
-     * path-package consistency checking)
+     *                    {@code false}, this avoids doing checks that only exist
+     *                    for purposes of verification (such as magic number matching and
+     *                    path-package consistency checking)
      */
     public DirectClassFile(ByteArray bytes, String filePath,
                            boolean strictParse) {
@@ -192,13 +205,13 @@ public class DirectClassFile implements ClassFile {
     /**
      * Constructs an instance.
      *
-     * @param bytes {@code non-null;} the bytes of the file
-     * @param filePath {@code non-null;} the file path for the class,
-     * excluding any base directory specification
+     * @param bytes       {@code non-null;} the bytes of the file
+     * @param filePath    {@code non-null;} the file path for the class,
+     *                    excluding any base directory specification
      * @param strictParse whether to be strict about parsing; if
-     * {@code false}, this avoids doing checks that only exist
-     * for purposes of verification (such as magic number matching and
-     * path-package consistency checking)
+     *                    {@code false}, this avoids doing checks that only exist
+     *                    for purposes of verification (such as magic number matching and
+     *                    path-package consistency checking)
      */
     public DirectClassFile(byte[] bytes, String filePath,
                            boolean strictParse) {
@@ -236,73 +249,97 @@ public class DirectClassFile implements ClassFile {
         return bytes;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public int getMagic() {
         parseToInterfacesIfNecessary();
         return getMagic0();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public int getMinorVersion() {
         parseToInterfacesIfNecessary();
         return getMinorVersion0();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public int getMajorVersion() {
         parseToInterfacesIfNecessary();
         return getMajorVersion0();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public int getAccessFlags() {
         parseToInterfacesIfNecessary();
         return accessFlags;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public CstType getThisClass() {
         parseToInterfacesIfNecessary();
         return thisClass;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public CstType getSuperclass() {
         parseToInterfacesIfNecessary();
         return superClass;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public ConstantPool getConstantPool() {
         parseToInterfacesIfNecessary();
         return pool;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public TypeList getInterfaces() {
         parseToInterfacesIfNecessary();
         return interfaces;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public FieldList getFields() {
         parseToEndIfNecessary();
         return fields;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public MethodList getMethods() {
         parseToEndIfNecessary();
         return methods;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public AttributeList getAttributes() {
         parseToEndIfNecessary();
         return attributes;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public CstString getSourceFile() {
         AttributeList attribs = getAttributes();
         Attribute attSf = attribs.findFirst(AttSourceFile.ATTRIBUTE_NAME);
@@ -323,8 +360,8 @@ public class DirectClassFile implements ClassFile {
      * constant pool entries of type {@code Class}.
      *
      * @param offset offset into {@link #bytes} for the start of the
-     * data
-     * @param size number of elements in the list (not number of bytes)
+     *               data
+     * @param size   number of elements in the list (not number of bytes)
      * @return {@code non-null;} an appropriately-constructed class list
      */
     public TypeList makeTypeList(int offset, int size) {
@@ -408,13 +445,13 @@ public class DirectClassFile implements ClassFile {
      * Sees if the .class file header magic/version are within
      * range.
      *
-     * @param magic the value of a classfile "magic" field
+     * @param magic        the value of a classfile "magic" field
      * @param minorVersion the value of a classfile "minor_version" field
      * @param majorVersion the value of a classfile "major_version" field
      * @return true iff the parameters are valid and within range
      */
     private boolean isGoodVersion(int magic, int minorVersion,
-            int majorVersion) {
+                                  int majorVersion) {
         /* Valid version ranges are typically of the form
          * "A.0 through B.C inclusive" where A <= B and C >= 0,
          * which is why we don't have a CLASS_FILE_MIN_MINOR_VERSION.
@@ -428,7 +465,7 @@ public class DirectClassFile implements ClassFile {
                     return true;
                 }
             } else if (majorVersion < CLASS_FILE_MAX_MAJOR_VERSION &&
-                       majorVersion >= CLASS_FILE_MIN_MAJOR_VERSION) {
+                    majorVersion >= CLASS_FILE_MIN_MAJOR_VERSION) {
                 return true;
             }
         }
@@ -448,9 +485,9 @@ public class DirectClassFile implements ClassFile {
             observer.parsed(bytes, 0, 0, "begin classfile");
             observer.parsed(bytes, 0, 4, "magic: " + Hex.u4(getMagic0()));
             observer.parsed(bytes, 4, 2,
-                            "minor_version: " + Hex.u2(getMinorVersion0()));
+                    "minor_version: " + Hex.u2(getMinorVersion0()));
             observer.parsed(bytes, 6, 2,
-                            "major_version: " + Hex.u2(getMajorVersion0()));
+                    "major_version: " + Hex.u2(getMajorVersion0()));
         }
 
         if (strictParse) {
@@ -458,12 +495,12 @@ public class DirectClassFile implements ClassFile {
              * version that we can handle.
              */
             if (!isGoodVersion(getMagic0(), getMinorVersion0(),
-                               getMajorVersion0())) {
+                    getMajorVersion0())) {
                 throw new ParseException("bad class file magic (" +
-                                         Hex.u4(getMagic0()) +
-                                         ") or version (" +
-                                         Hex.u2(getMajorVersion0()) + "." +
-                                         Hex.u2(getMinorVersion0()) + ")");
+                        Hex.u4(getMagic0()) +
+                        ") or version (" +
+                        Hex.u2(getMajorVersion0()) + "." +
+                        Hex.u2(getMinorVersion0()) + ")");
             }
         }
 
@@ -471,6 +508,7 @@ public class DirectClassFile implements ClassFile {
         cpParser.setObserver(observer);
         pool = cpParser.getPool();
         pool.setImmutable();
+        BitSet indyConstantIndexes = cpParser.getInvokeDynamicConstantIndexes();
 
         int at = cpParser.getEndOffset();
         int accessFlags = bytes.getUnsignedShort(at); // u2 access_flags;
@@ -481,14 +519,10 @@ public class DirectClassFile implements ClassFile {
         int count = bytes.getUnsignedShort(at + 6); // u2 interfaces_count
 
         if (observer != null) {
-            observer.parsed(bytes, at, 2,
-                            "access_flags: " +
-                            AccessFlags.classString(accessFlags));
+            observer.parsed(bytes, at, 2, "access_flags: " + AccessFlags.classString(accessFlags));
             observer.parsed(bytes, at + 2, 2, "this_class: " + thisClass);
-            observer.parsed(bytes, at + 4, 2, "super_class: " +
-                            stringOrNone(superClass));
-            observer.parsed(bytes, at + 6, 2,
-                            "interfaces_count: " + Hex.u2(count));
+            observer.parsed(bytes, at + 4, 2, "super_class: " + stringOrNone(superClass));
+            observer.parsed(bytes, at + 6, 2, "interfaces_count: " + Hex.u2(count));
             if (count != 0) {
                 observer.parsed(bytes, at + 8, 0, "interfaces:");
             }
@@ -505,11 +539,9 @@ public class DirectClassFile implements ClassFile {
              */
             String thisClassName = thisClass.getClassType().getClassName();
             if (!(filePath.endsWith(".class") &&
-                  filePath.startsWith(thisClassName) &&
-                  (filePath.length() == (thisClassName.length() + 6)))) {
-                throw new ParseException("class name (" + thisClassName +
-                                         ") does not match path (" +
-                                         filePath + ")");
+                    filePath.startsWith(thisClassName) &&
+                    (filePath.length() == (thisClassName.length() + 6)))) {
+                throw new ParseException("class name (" + thisClassName + ") does not match path (" + filePath + ")");
             }
         }
 
@@ -520,29 +552,36 @@ public class DirectClassFile implements ClassFile {
          */
         this.accessFlags = accessFlags;
 
-        FieldListParser flParser =
-            new FieldListParser(this, thisClass, at, attributeFactory);
+        FieldListParser flParser = new FieldListParser(this, thisClass, at, attributeFactory);
         flParser.setObserver(observer);
         fields = flParser.getList();
         at = flParser.getEndOffset();
 
-        MethodListParser mlParser =
-            new MethodListParser(this, thisClass, at, attributeFactory);
+        MethodListParser mlParser = new MethodListParser(this, thisClass, at, attributeFactory);
         mlParser.setObserver(observer);
         methods = mlParser.getList();
         at = mlParser.getEndOffset();
 
-        AttributeListParser alParser =
-            new AttributeListParser(this, AttributeFactory.CTX_CLASS, at,
-                                    attributeFactory);
+        AttributeListParser alParser = new AttributeListParser(this, AttributeFactory.CTX_CLASS, at, attributeFactory);
         alParser.setObserver(observer);
         attributes = alParser.getList();
         attributes.setImmutable();
         at = alParser.getEndOffset();
 
         if (at != bytes.size()) {
-            throw new ParseException("extra bytes at end of class file, " +
-                                     "at offset " + Hex.u4(at));
+            throw new ParseException("extra bytes at end of class file, " + "at offset " + Hex.u4(at));
+        }
+
+        // inject bootstrap method in each invokedynamic constant
+        AttBootstrapMethods bootstrapMethodAttributes = (AttBootstrapMethods) attributes.findFirst(
+                AttBootstrapMethods.ATTRIBUTE_NAME);
+        if (bootstrapMethodAttributes != null) {
+            BootstrapMethodList bootstrapMethods = bootstrapMethodAttributes.getBootstrapMethods();
+
+            for (int i = indyConstantIndexes.nextSetBit(0); i != -1; i = indyConstantIndexes.nextSetBit(i + 1)) {
+                CstInvokeDynamic cstInvokeDynamic = (CstInvokeDynamic) pool.get(i);
+                cstInvokeDynamic.setBootstrapMethod(bootstrapMethods.get((int) cstInvokeDynamic.getOffsetBSMArgs()));
+            }
         }
 
         if (observer != null) {
@@ -560,27 +599,33 @@ public class DirectClassFile implements ClassFile {
      * {@code Class}.
      */
     private static class DcfTypeList implements TypeList {
-        /** {@code non-null;} array containing the data */
+        /**
+         * {@code non-null;} array containing the data
+         */
         private final ByteArray bytes;
 
-        /** number of elements in the list (not number of bytes) */
+        /**
+         * number of elements in the list (not number of bytes)
+         */
         private final int size;
 
-        /** {@code non-null;} the constant pool */
+        /**
+         * {@code non-null;} the constant pool
+         */
         private final StdConstantPool pool;
 
         /**
          * Constructs an instance.
          *
-         * @param bytes {@code non-null;} original classfile's bytes
-         * @param offset offset into {@link #bytes} for the start of the
-         * data
-         * @param size number of elements in the list (not number of bytes)
-         * @param pool {@code non-null;} the constant pool to use
+         * @param bytes    {@code non-null;} original classfile's bytes
+         * @param offset   offset into {@link #bytes} for the start of the
+         *                 data
+         * @param size     number of elements in the list (not number of bytes)
+         * @param pool     {@code non-null;} the constant pool to use
          * @param observer {@code null-ok;} parse observer to use, if any
          */
         public DcfTypeList(ByteArray bytes, int offset, int size,
-                StdConstantPool pool, ParseObserver observer) {
+                           StdConstantPool pool, ParseObserver observer) {
             if (size < 0) {
                 throw new IllegalArgumentException("size < 0");
             }
@@ -606,29 +651,39 @@ public class DirectClassFile implements ClassFile {
             }
         }
 
-        /** {@inheritDoc} */
+        /**
+         * {@inheritDoc}
+         */
         public boolean isMutable() {
             return false;
         }
 
-        /** {@inheritDoc} */
+        /**
+         * {@inheritDoc}
+         */
         public int size() {
             return size;
         }
 
-        /** {@inheritDoc} */
+        /**
+         * {@inheritDoc}
+         */
         public int getWordCount() {
             // It is the same as size because all elements are classes.
             return size;
         }
 
-        /** {@inheritDoc} */
+        /**
+         * {@inheritDoc}
+         */
         public Type getType(int n) {
             int idx = bytes.getUnsignedShort(n * 2);
             return ((CstType) pool.get(idx)).getClassType();
         }
 
-        /** {@inheritDoc} */
+        /**
+         * {@inheritDoc}
+         */
         public TypeList withAddedType(Type type) {
             throw new UnsupportedOperationException("unsupported");
         }

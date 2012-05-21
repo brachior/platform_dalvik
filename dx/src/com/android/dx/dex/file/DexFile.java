@@ -16,14 +16,8 @@
 
 package com.android.dx.dex.file;
 
-import com.android.dx.dex.DexFormat;
 import com.android.dx.dex.DexOptions;
-import com.android.dx.rop.cst.Constant;
-import com.android.dx.rop.cst.CstBaseMethodRef;
-import com.android.dx.rop.cst.CstEnumRef;
-import com.android.dx.rop.cst.CstFieldRef;
-import com.android.dx.rop.cst.CstString;
-import com.android.dx.rop.cst.CstType;
+import com.android.dx.rop.cst.*;
 import com.android.dx.rop.type.Type;
 import com.android.dx.util.ByteArrayAnnotatedOutput;
 import com.android.dx.util.ExceptionWithContext;
@@ -39,58 +33,99 @@ import java.util.zip.Adler32;
 import static com.android.dx.dex.file.MixedItemSection.SortType;
 
 /**
- * Representation of an entire {@code .dex} (Dalvik EXecutable)
- * file, which itself consists of a set of Dalvik classes.
+ * Representation of an entire {@code .dex} (Dalvik EXecutable) file, which
+ * itself consists of a set of Dalvik classes.
  */
 public final class DexFile {
-    /** options controlling the creation of the file */
+    /**
+     * options controlling the creation of the file
+     */
     private DexOptions dexOptions;
 
-    /** {@code non-null;} word data section */
+    /**
+     * {@code non-null;} word data section
+     */
     private final MixedItemSection wordData;
 
     /**
-     * {@code non-null;} type lists section. This is word data, but separating
-     * it from {@link #wordData} helps break what would otherwise be a
-     * circular dependency between the that and {@link #protoIds}.
+     * {@code non-null;} type lists section. This is word data, but separating it
+     * from {@link #wordData} helps break what would otherwise be a circular
+     * dependency between the that and {@link #protoIds}.
      */
     private final MixedItemSection typeLists;
 
     /**
      * {@code non-null;} map section. The map needs to be in a section by itself
-     * for the self-reference mechanics to work in a reasonably
-     * straightforward way. See {@link MapItem#addMap} for more detail.
+     * for the self-reference mechanics to work in a reasonably straightforward
+     * way. See {@link MapItem#addMap} for more detail.
      */
     private final MixedItemSection map;
 
-    /** {@code non-null;} string data section */
+    /**
+     * {@code non-null;} string data section
+     */
     private final MixedItemSection stringData;
 
-    /** {@code non-null;} string identifiers section */
+    /**
+     * {@code non-null;} string identifiers section
+     */
     private final StringIdsSection stringIds;
 
-    /** {@code non-null;} type identifiers section */
+    /**
+     * {@code non-null;} type identifiers section
+     */
     private final TypeIdsSection typeIds;
 
-    /** {@code non-null;} prototype identifiers section */
+    /**
+     * {@code non-null;} prototype identifiers section
+     */
     private final ProtoIdsSection protoIds;
 
-    /** {@code non-null;} field identifiers section */
+    /**
+     * {@code non-null;} field identifiers section
+     */
     private final FieldIdsSection fieldIds;
 
-    /** {@code non-null;} method identifiers section */
+    /**
+     * {@code non-null;} method identifiers section
+     */
     private final MethodIdsSection methodIds;
 
-    /** {@code non-null;} class definitions section */
+    /**
+     * {@code non-null;} methodtype identifiers section
+     */
+    private final MethodTypeIdsSection methodTypeIds;
+
+    /**
+     * {@code non-null;} methodhandle identifiers section
+     */
+    private final MethodHandleIdsSection methodHandleIds;
+
+    /**
+     * {@code non-null;} invokedynamic identifiers section
+     */
+    private final InvokeDynamicIdsSection invokedynamicIds;
+
+    private final MixedItemSection bsmArgsLists;
+
+    /**
+     * {@code non-null;} class definitions section
+     */
     private final ClassDefsSection classDefs;
 
-    /** {@code non-null;} class data section */
+    /**
+     * {@code non-null;} class data section
+     */
     private final MixedItemSection classData;
 
-    /** {@code non-null;} byte data section */
+    /**
+     * {@code non-null;} byte data section
+     */
     private final MixedItemSection byteData;
 
-    /** {@code non-null;} file header */
+    /**
+     * {@code non-null;} file header
+     */
     private final HeaderSection header;
 
     /**
@@ -99,10 +134,14 @@ public final class DexFile {
      */
     private final Section[] sections;
 
-    /** {@code >= -1;} total file size or {@code -1} if unknown */
+    /**
+     * {@code >= -1;} total file size or {@code -1} if unknown
+     */
     private int fileSize;
 
-    /** {@code >= 40;} maximum width of the file dump */
+    /**
+     * {@code >= 40;} maximum width of the file dump
+     */
     private int dumpWidth;
 
     /**
@@ -114,8 +153,7 @@ public final class DexFile {
         header = new HeaderSection(this);
         typeLists = new MixedItemSection(null, this, 4, SortType.NONE);
         wordData = new MixedItemSection("word_data", this, 4, SortType.TYPE);
-        stringData =
-            new MixedItemSection("string_data", this, 1, SortType.INSTANCE);
+        stringData = new MixedItemSection("string_data", this, 1, SortType.INSTANCE);
         classData = new MixedItemSection(null, this, 1, SortType.NONE);
         byteData = new MixedItemSection("byte_data", this, 1, SortType.TYPE);
         stringIds = new StringIdsSection(this);
@@ -123,18 +161,20 @@ public final class DexFile {
         protoIds = new ProtoIdsSection(this);
         fieldIds = new FieldIdsSection(this);
         methodIds = new MethodIdsSection(this);
+        methodTypeIds = new MethodTypeIdsSection(this);
+        methodHandleIds = new MethodHandleIdsSection(this);
+        invokedynamicIds = new InvokeDynamicIdsSection(this);
+        bsmArgsLists = new MixedItemSection(null, this, 1, SortType.NONE);
         classDefs = new ClassDefsSection(this);
         map = new MixedItemSection("map", this, 4, SortType.NONE);
 
         /*
-         * This is the list of sections in the order they appear in
-         * the final output.
-         */
-        sections = new Section[] {
-            header, stringIds, typeIds, protoIds, fieldIds, methodIds,
-            classDefs, wordData, typeLists, stringData, byteData,
-            classData, map };
-
+           * This is the list of sections in the order they appear in
+           * the final output.
+           */
+        sections = new Section[]{header, stringIds, typeIds, protoIds, fieldIds, methodIds,
+                classDefs, methodTypeIds, methodHandleIds, invokedynamicIds, bsmArgsLists,
+                wordData, typeLists, stringData, byteData, classData, map};
         fileSize = -1;
         dumpWidth = 79;
     }
@@ -154,8 +194,8 @@ public final class DexFile {
     }
 
     /**
-     * Adds a class to this instance. It is illegal to attempt to add more
-     * than one class with the same name.
+     * Adds a class to this instance. It is illegal to attempt to add more than
+     * one class with the same name.
      *
      * @param clazz {@code non-null;} the class to add
      */
@@ -167,8 +207,8 @@ public final class DexFile {
      * Gets the class definition with the given name, if any.
      *
      * @param name {@code non-null;} the class name to look for
-     * @return {@code null-ok;} the class with the given name, or {@code null}
-     * if there is no such class
+     * @return {@code null-ok;} the class with the given name, or {@code null} if
+     *         there is no such class
      */
     public ClassDefItem getClassOrNull(String name) {
         try {
@@ -181,15 +221,14 @@ public final class DexFile {
     }
 
     /**
-     * Writes the contents of this instance as either a binary or a
-     * human-readable form, or both.
+     * Writes the contents of this instance as either a binary or a human-readable
+     * form, or both.
      *
-     * @param out {@code null-ok;} where to write to
+     * @param out      {@code null-ok;} where to write to
      * @param humanOut {@code null-ok;} where to write human-oriented output to
-     * @param verbose whether to be verbose when writing human-oriented output
+     * @param verbose  whether to be verbose when writing human-oriented output
      */
-    public void writeTo(OutputStream out, Writer humanOut, boolean verbose)
-        throws IOException {
+    public void writeTo(OutputStream out, Writer humanOut, boolean verbose) throws IOException {
         boolean annotate = (humanOut != null);
         ByteArrayAnnotatedOutput result = toDex0(annotate, verbose);
 
@@ -203,15 +242,14 @@ public final class DexFile {
     }
 
     /**
-     * Returns the contents of this instance as a {@code .dex} file,
-     * in {@code byte[]} form.
+     * Returns the contents of this instance as a {@code .dex} file, in
+     * {@code byte[]} form.
      *
      * @param humanOut {@code null-ok;} where to write human-oriented output to
-     * @param verbose whether to be verbose when writing human-oriented output
+     * @param verbose  whether to be verbose when writing human-oriented output
      * @return {@code non-null;} a {@code .dex} file for this instance
      */
-    public byte[] toDex(Writer humanOut, boolean verbose)
-        throws IOException {
+    public byte[] toDex(Writer humanOut, boolean verbose) throws IOException {
         boolean annotate = (humanOut != null);
         ByteArrayAnnotatedOutput result = toDex0(annotate, verbose);
 
@@ -237,14 +275,16 @@ public final class DexFile {
 
     /**
      * Gets the total file size, if known.
-     *
-     * <p>This is package-scope in order to allow
-     * the {@link HeaderSection} to set itself up properly.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the {@link HeaderSection} to set
+     * itself up properly.
+     * </p>
      *
      * @return {@code >= 0;} the total file size
      * @throws RuntimeException thrown if the file size is not yet known
      */
-    /*package*/ int getFileSize() {
+    /*package*/int getFileSize() {
         if (fileSize < 0) {
             throw new RuntimeException("file size not yet known");
         }
@@ -254,193 +294,252 @@ public final class DexFile {
 
     /**
      * Gets the string data section.
-     *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the string data section
      */
-    /*package*/ MixedItemSection getStringData() {
+    /*package*/MixedItemSection getStringData() {
         return stringData;
     }
 
     /**
      * Gets the word data section.
-     *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the word data section
      */
-    /*package*/ MixedItemSection getWordData() {
+    /*package*/MixedItemSection getWordData() {
         return wordData;
     }
 
     /**
      * Gets the type lists section.
-     *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the word data section
      */
-    /*package*/ MixedItemSection getTypeLists() {
+    /*package*/MixedItemSection getTypeLists() {
         return typeLists;
     }
 
     /**
      * Gets the map section.
-     *
-     * <p>This is package-scope in order to allow the header section
-     * to query it.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the header section to query it.
+     * </p>
      *
      * @return {@code non-null;} the map section
      */
-    /*package*/ MixedItemSection getMap() {
+    /*package*/MixedItemSection getMap() {
         return map;
     }
 
     /**
      * Gets the string identifiers section.
-     *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the string identifiers section
      */
-    /*package*/ StringIdsSection getStringIds() {
+    /*package*/StringIdsSection getStringIds() {
         return stringIds;
     }
 
     /**
      * Gets the class definitions section.
-     *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the class definitions section
      */
-    /*package*/ ClassDefsSection getClassDefs() {
+    /*package*/ClassDefsSection getClassDefs() {
         return classDefs;
     }
 
     /**
      * Gets the class data section.
-     *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the class data section
      */
-    /*package*/ MixedItemSection getClassData() {
+    /*package*/MixedItemSection getClassData() {
         return classData;
     }
 
     /**
      * Gets the type identifiers section.
-     *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the class identifiers section
      */
-    /*package*/ TypeIdsSection getTypeIds() {
+    /*package*/TypeIdsSection getTypeIds() {
         return typeIds;
     }
 
     /**
      * Gets the prototype identifiers section.
-     *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the prototype identifiers section
      */
-    /*package*/ ProtoIdsSection getProtoIds() {
+    /*package*/ProtoIdsSection getProtoIds() {
         return protoIds;
     }
 
     /**
      * Gets the field identifiers section.
-     *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the field identifiers section
      */
-    /*package*/ FieldIdsSection getFieldIds() {
+    /*package*/FieldIdsSection getFieldIds() {
         return fieldIds;
     }
 
     /**
      * Gets the method identifiers section.
-     *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the method identifiers section
      */
-    /*package*/ MethodIdsSection getMethodIds() {
+    /*package*/MethodIdsSection getMethodIds() {
         return methodIds;
     }
 
     /**
-     * Gets the byte data section.
+     * Gets the methodtype identifiers section.
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
-     * <p>This is package-scope in order to allow
-     * the various {@link Item} instances to add items to the
-     * instance.</p>
+     * @return {@code non-null;} the methodtype identifiers section
+     */
+    /*package*/MethodTypeIdsSection getMethodTypeIds() {
+        return methodTypeIds;
+    }
+
+    /**
+     * Gets the methodhandle identifiers section.
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
+     *
+     * @return {@code non-null;} the methodhandle identifiers section
+     */
+    /*package*/MethodHandleIdsSection getMethodHandleIds() {
+        return methodHandleIds;
+    }
+
+    /**
+     * Gets the invokedynamic identifiers section.
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
+     *
+     * @return {@code non-null;} the invokedynamic identifiers section
+     */
+    /*package*/InvokeDynamicIdsSection getInvokedynamicIds() {
+        return invokedynamicIds;
+    }
+
+    public MixedItemSection getBsmArgsLists() {
+        return bsmArgsLists;
+    }
+
+    /**
+     * Gets the byte data section.
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the various {@link Item} instances
+     * to add items to the instance.
+     * </p>
      *
      * @return {@code non-null;} the byte data section
      */
-    /*package*/ MixedItemSection getByteData() {
+    /*package*/MixedItemSection getByteData() {
         return byteData;
     }
 
     /**
-     * Gets the first section of the file that is to be considered
-     * part of the data section.
-     *
-     * <p>This is package-scope in order to allow the header section
-     * to query it.</p>
+     * Gets the first section of the file that is to be considered part of the
+     * data section.
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the header section to query it.
+     * </p>
      *
      * @return {@code non-null;} the section
      */
-    /*package*/ Section getFirstDataSection() {
+    /*package*/Section getFirstDataSection() {
         return wordData;
     }
 
     /**
-     * Gets the last section of the file that is to be considered
-     * part of the data section.
-     *
-     * <p>This is package-scope in order to allow the header section
-     * to query it.</p>
+     * Gets the last section of the file that is to be considered part of the data
+     * section.
+     * <p/>
+     * <p>
+     * This is package-scope in order to allow the header section to query it.
+     * </p>
      *
      * @return {@code non-null;} the section
      */
-    /*package*/ Section getLastDataSection() {
+    /*package*/Section getLastDataSection() {
         return map;
     }
 
     /**
-     * Interns the given constant in the appropriate section of this
-     * instance, or do nothing if the given constant isn't the sort
-     * that should be interned.
+     * Interns the given constant in the appropriate section of this instance, or
+     * do nothing if the given constant isn't the sort that should be interned.
      *
      * @param cst {@code non-null;} constant to possibly intern
      */
-    /*package*/ void internIfAppropriate(Constant cst) {
+    /*package*/void internIfAppropriate(Constant cst) {
         if (cst instanceof CstString) {
             stringIds.intern((CstString) cst);
         } else if (cst instanceof CstType) {
@@ -451,23 +550,29 @@ public final class DexFile {
             fieldIds.intern((CstFieldRef) cst);
         } else if (cst instanceof CstEnumRef) {
             fieldIds.intern(((CstEnumRef) cst).getFieldRef());
+        }
+        else if (cst instanceof CstMethodType) {
+            methodTypeIds.intern((CstMethodType) cst);
+        } else if (cst instanceof CstMethodHandle) {
+            methodHandleIds.intern((CstMethodHandle) cst);
+        } else if (cst instanceof CstInvokeDynamic) {
+            invokedynamicIds.intern((CstInvokeDynamic) cst);
         } else if (cst == null) {
             throw new NullPointerException("cst == null");
         }
     }
 
     /**
-     * Gets the {@link IndexedItem} corresponding to the given constant,
-     * if it is a constant that has such a correspondence, or return
-     * {@code null} if it isn't such a constant. This will throw
-     * an exception if the given constant <i>should</i> have been found
-     * but wasn't.
+     * Gets the {@link IndexedItem} corresponding to the given constant, if it is
+     * a constant that has such a correspondence, or return {@code null} if it
+     * isn't such a constant. This will throw an exception if the given constant
+     * <i>should</i> have been found but wasn't.
      *
      * @param cst {@code non-null;} the constant to look up
      * @return {@code null-ok;} its corresponding item, if it has a corresponding
-     * item, or {@code null} if it's not that sort of constant
+     *         item, or {@code null} if it's not that sort of constant
      */
-    /*package*/ IndexedItem findItemOrNull(Constant cst) {
+    /*package*/IndexedItem findItemOrNull(Constant cst) {
         IndexedItem item;
 
         if (cst instanceof CstString) {
@@ -478,26 +583,31 @@ public final class DexFile {
             return methodIds.get(cst);
         } else if (cst instanceof CstFieldRef) {
             return fieldIds.get(cst);
+        } else if (cst instanceof CstMethodType) {
+            return methodTypeIds.get(cst);
+        } else if (cst instanceof CstMethodHandle) {
+            return methodHandleIds.get(cst);
+        } else if (cst instanceof CstInvokeDynamic) {
+            return invokedynamicIds.get(cst);
         } else {
             return null;
         }
     }
 
     /**
-     * Returns the contents of this instance as a {@code .dex} file,
-     * in a {@link ByteArrayAnnotatedOutput} instance.
+     * Returns the contents of this instance as a {@code .dex} file, in a
+     * {@link ByteArrayAnnotatedOutput} instance.
      *
      * @param annotate whether or not to keep annotations
-     * @param verbose if annotating, whether to be verbose
+     * @param verbose  if annotating, whether to be verbose
      * @return {@code non-null;} a {@code .dex} file for this instance
      */
-    private ByteArrayAnnotatedOutput toDex0(boolean annotate,
-            boolean verbose) {
+    private ByteArrayAnnotatedOutput toDex0(boolean annotate, boolean verbose) {
         /*
-         * The following is ordered so that the prepare() calls which
-         * add items happen before the calls to the sections that get
-         * added to.
-         */
+           * The following is ordered so that the prepare() calls which
+           * add items happen before the calls to the sections that get
+           * added to.
+           */
 
         classDefs.prepare();
         classData.prepare();
@@ -507,6 +617,10 @@ public final class DexFile {
         fieldIds.prepare();
         protoIds.prepare();
         typeLists.prepare();
+        invokedynamicIds.prepare();
+        bsmArgsLists.prepare();
+        methodHandleIds.prepare();
+        methodTypeIds.prepare();
         typeIds.prepare();
         stringIds.prepare();
         stringData.prepare();
@@ -527,26 +641,25 @@ public final class DexFile {
             try {
                 if (one == map) {
                     /*
-                     * Inform the map of all the sections, and add it
-                     * to the file. This can only be done after all
-                     * the other items have been sorted and placed.
-                     */
+                          * Inform the map of all the sections, and add it
+                          * to the file. This can only be done after all
+                          * the other items have been sorted and placed.
+                          */
                     MapItem.addMap(sections, map);
                     map.prepare();
                 }
 
                 if (one instanceof MixedItemSection) {
                     /*
-                     * Place the items of a MixedItemSection that just
-                     * got placed.
-                     */
+                          * Place the items of a MixedItemSection that just
+                          * got placed.
+                          */
                     ((MixedItemSection) one).placeItems();
                 }
 
                 offset = placedAt + one.writeSize();
             } catch (RuntimeException ex) {
-                throw ExceptionWithContext.withContext(ex,
-                        "...while writing section " + i);
+                throw ExceptionWithContext.withContext(ex, "...while writing section " + i);
             }
         }
 
@@ -565,8 +678,7 @@ public final class DexFile {
                 Section one = sections[i];
                 int zeroCount = one.getFileOffset() - out.getCursor();
                 if (zeroCount < 0) {
-                    throw new ExceptionWithContext("excess write of " +
-                            (-zeroCount));
+                    throw new ExceptionWithContext("excess write of " + (-zeroCount));
                 }
                 out.writeZeroes(one.getFileOffset() - out.getCursor());
                 one.writeTo(out);
@@ -592,8 +704,7 @@ public final class DexFile {
         calcChecksum(barr);
 
         if (annotate) {
-            wordData.writeIndexAnnotation(out, ItemType.TYPE_CODE_ITEM,
-                    "\nmethod code index:\n\n");
+            wordData.writeIndexAnnotation(out, ItemType.TYPE_CODE_ITEM, "\nmethod code index:\n\n");
             getStatistics().writeAnnotation(out);
             out.finishAnnotating();
         }
@@ -617,8 +728,8 @@ public final class DexFile {
     }
 
     /**
-     * Calculates the signature for the {@code .dex} file in the
-     * given array, and modify the array to contain it.
+     * Calculates the signature for the {@code .dex} file in the given array, and
+     * modify the array to contain it.
      *
      * @param bytes {@code non-null;} the bytes of the file
      */
@@ -636,8 +747,7 @@ public final class DexFile {
         try {
             int amt = md.digest(bytes, 12, 20);
             if (amt != 20) {
-                throw new RuntimeException("unexpected digest write: " + amt +
-                                           " bytes");
+                throw new RuntimeException("unexpected digest write: " + amt + " bytes");
             }
         } catch (DigestException ex) {
             throw new RuntimeException(ex);
@@ -645,8 +755,8 @@ public final class DexFile {
     }
 
     /**
-     * Calculates the checksum for the {@code .dex} file in the
-     * given array, and modify the array to contain it.
+     * Calculates the checksum for the {@code .dex} file in the given array, and
+     * modify the array to contain it.
      *
      * @param bytes {@code non-null;} the bytes of the file
      */
@@ -657,8 +767,8 @@ public final class DexFile {
 
         int sum = (int) a32.getValue();
 
-        bytes[8]  = (byte) sum;
-        bytes[9]  = (byte) (sum >> 8);
+        bytes[8] = (byte) sum;
+        bytes[9] = (byte) (sum >> 8);
         bytes[10] = (byte) (sum >> 16);
         bytes[11] = (byte) (sum >> 24);
     }

@@ -22,6 +22,7 @@ public final class SizeOf {
     public static final int UBYTE = 1;
     public static final int USHORT = 2;
     public static final int UINT = 4;
+    public static final int ULONG = 8;
 
     public static final int SIGNATURE = UBYTE * 20;
 
@@ -47,10 +48,17 @@ public final class SizeOf {
      * method_ids_off uint
      * class_defs_size uint
      * class_defs_off uint
+     * methodtype_ids_size uint
+     * methodtype_ids_off uint
+     * methodhandle_ids_size uint
+     * methodhandle_ids_off uint
+     * invokedynamic_ids_size uint
+     * invokedynamic_ids_off uint
      * data_size uint
      * data_off uint
      */
-    public static final int HEADER_ITEM = (8 * UBYTE) + UINT + SIGNATURE + (20 * UINT); // 0x70
+  	// public static final int HEADER_ITEM = (8 * UBYTE) + UINT + SIGNATURE + (20 * UINT); // 0x70
+    public static final int HEADER_ITEM = (8 * UBYTE) + UINT + SIGNATURE + (26 * UINT); // 0x76
 
     /**
      * string_data_off uint
@@ -100,4 +108,23 @@ public final class SizeOf {
      * offset uint
      */
     public static final int MAP_ITEM = USHORT + USHORT + UINT + UINT;
+
+    /**
+     * proto_idx ushort
+     */
+    public static final int METHODTYPE_ITEM = USHORT;
+
+    /**
+     * kind_value ubyte
+     * member_idx ushort
+     */
+    public static final int METHODHANDLE_ITEM = UBYTE + USHORT;
+
+    /**
+     * string_idx uint
+     * proto_idx ushort
+     * methodhandle_idx ushort
+     * bsmarg_off ulong
+     */
+    public static final int INVOKEDYNAMIC_ITEM = UINT + USHORT + USHORT + ULONG;
 }
