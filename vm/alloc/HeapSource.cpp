@@ -35,17 +35,16 @@ extern "C" void dlmalloc_walk_free_pages(void(*)(void*, void*, void*), void*);
 static void snapIdealFootprint();
 static void setIdealFootprint(size_t max);
 static size_t getMaximumSize(const HeapSource *hs);
-static void trimHeaps();
 
 #define HEAP_UTILIZATION_MAX        1024
 #define DEFAULT_HEAP_UTILIZATION    512     // Range 1..HEAP_UTILIZATION_MAX
 #define HEAP_IDEAL_FREE             (2 * 1024 * 1024)
 #define HEAP_MIN_FREE               (HEAP_IDEAL_FREE / 4)
 
-/* Number of seconds to wait after a GC before performing a heap trim
+/* How long to wait after a GC before performing a heap trim
  * operation to reclaim unused pages.
  */
-#define HEAP_TRIM_IDLE_TIME_SECONDS 5
+#define HEAP_TRIM_IDLE_TIME_MS (5 * 1000)
 
 /* Start a concurrent collection when free memory falls under this
  * many bytes.
@@ -410,7 +409,7 @@ static void *gcDaemonThread(void* arg)
         bool trim = false;
         if (gHs->gcThreadTrimNeeded) {
             int result = dvmRelativeCondWait(&gHs->gcThreadCond, &gHs->gcThreadMutex,
-                    HEAP_TRIM_IDLE_TIME_SECONDS, 0);
+                    HEAP_TRIM_IDLE_TIME_MS, 0);
             if (result == ETIMEDOUT) {
                 /* Timed out waiting for a GC request, schedule a heap trim. */
                 trim = true;
@@ -428,7 +427,7 @@ static void *gcDaemonThread(void* arg)
         if (!gDvm.gcHeap->gcRunning) {
             dvmChangeStatus(NULL, THREAD_RUNNING);
             if (trim) {
-                trimHeaps();
+                dvmHeapSourceTrimHeaps();
                 gHs->gcThreadTrimNeeded = false;
             } else {
                 dvmCollectGarbageInternal(GC_CONCURRENT);
@@ -1303,7 +1302,7 @@ static void releasePagesInRange(void *start, void *end, void *nbytes)
 /*
  * Return unused memory to the system if possible.
  */
-static void trimHeaps()
+void dvmHeapSourceTrimHeaps()
 {
     HS_BOILERPLATE();
 
