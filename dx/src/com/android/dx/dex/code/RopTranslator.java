@@ -18,23 +18,7 @@ package com.android.dx.dex.code;
 
 import com.android.dx.dex.DexOptions;
 import com.android.dx.io.Opcodes;
-import com.android.dx.rop.code.BasicBlock;
-import com.android.dx.rop.code.BasicBlockList;
-import com.android.dx.rop.code.FillArrayDataInsn;
-import com.android.dx.rop.code.Insn;
-import com.android.dx.rop.code.LocalVariableInfo;
-import com.android.dx.rop.code.PlainCstInsn;
-import com.android.dx.rop.code.PlainInsn;
-import com.android.dx.rop.code.RegOps;
-import com.android.dx.rop.code.RegisterSpec;
-import com.android.dx.rop.code.RegisterSpecList;
-import com.android.dx.rop.code.RegisterSpecSet;
-import com.android.dx.rop.code.Rop;
-import com.android.dx.rop.code.RopMethod;
-import com.android.dx.rop.code.SourcePosition;
-import com.android.dx.rop.code.SwitchInsn;
-import com.android.dx.rop.code.ThrowingCstInsn;
-import com.android.dx.rop.code.ThrowingInsn;
+import com.android.dx.rop.code.*;
 import com.android.dx.rop.cst.Constant;
 import com.android.dx.rop.cst.CstInteger;
 import com.android.dx.util.Bits;
@@ -611,6 +595,15 @@ public final class RopTranslator {
             }
         }
 
+        @Override
+        public void visitPlainCstIndyInsn(PlainCstIndyInsn insn) {
+            SourcePosition pos = insn.getPosition();
+            Dop opcode = RopToDop.dopFor(insn);
+            RegisterSpecList regs = getRegs(insn);
+            DalvInsn di = new CstIndyInsn(opcode, pos, regs, insn.getIndy(), insn.getCallsite());
+            addOutput(di);
+        }
+
         /** {@inheritDoc} */
         public void visitSwitchInsn(SwitchInsn insn) {
             SourcePosition pos = insn.getPosition();
@@ -735,6 +728,24 @@ public final class RopTranslator {
             }
         }
 
+        @Override
+        public void visitThrowingCstIndyInsn(ThrowingCstIndyInsn insn) {
+            SourcePosition pos = insn.getPosition();
+            Dop opcode = RopToDop.dopFor(insn);
+            Rop rop = insn.getOpcode();
+
+            if (rop.getBranchingness() != Rop.BRANCH_THROW) {
+                throw new RuntimeException("shouldn't happen");
+            }
+
+            addOutput(lastAddress);
+
+            RegisterSpecList regs = insn.getSources();
+            DalvInsn di = new CstIndyInsn(opcode, pos, regs, insn.getIndy(), insn.getCallsite());
+
+            addOutput(di);
+        }
+
         /** {@inheritDoc} */
         public void visitThrowingInsn(ThrowingInsn insn) {
             SourcePosition pos = insn.getPosition();
@@ -841,6 +852,12 @@ public final class RopTranslator {
             addIntroductionIfNecessary(insn);
         }
 
+        @Override
+        public void visitPlainCstIndyInsn(PlainCstIndyInsn insn) {
+            super.visitPlainCstIndyInsn(insn);
+            addIntroductionIfNecessary(insn);
+        }
+
         /** {@inheritDoc} */
         @Override
         public void visitSwitchInsn(SwitchInsn insn) {
@@ -852,6 +869,12 @@ public final class RopTranslator {
         @Override
         public void visitThrowingCstInsn(ThrowingCstInsn insn) {
             super.visitThrowingCstInsn(insn);
+            addIntroductionIfNecessary(insn);
+        }
+
+        /** {@inheritDoc} */
+        public void visitThrowingCstIndyInsn(ThrowingCstIndyInsn insn) {
+            super.visitThrowingCstIndyInsn(insn);
             addIntroductionIfNecessary(insn);
         }
 

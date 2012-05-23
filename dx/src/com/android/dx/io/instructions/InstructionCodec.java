@@ -72,7 +72,7 @@ public enum InstructionCodec {
         @Override public void encode(DecodedInstruction insn, CodeOutput out) {
             out.write(
                     codeUnit(insn.getOpcodeUnit(),
-                             makeByte(insn.getA(), insn.getB())));
+                            makeByte(insn.getA(), insn.getB())));
         }
     },
 
@@ -91,7 +91,7 @@ public enum InstructionCodec {
         @Override public void encode(DecodedInstruction insn, CodeOutput out) {
             out.write(
                     codeUnit(insn.getOpcodeUnit(),
-                             makeByte(insn.getA(), insn.getLiteralNibble())));
+                            makeByte(insn.getA(), insn.getLiteralNibble())));
         }
     },
 
@@ -527,6 +527,28 @@ public enum InstructionCodec {
         }
     },
 
+    FORMAT_45CI() {
+        @Override public DecodedInstruction decode(int opcodeUnit, CodeInput in) throws EOFException {
+            int opcode = byte0(opcodeUnit);
+            int registerCount = nibble3(opcodeUnit);
+            int index = in.read();
+            IndexType indexType = OpcodeInfo.getIndexType(opcode);
+            int abcd = in.read();
+            int literal = in.readInt();
+            int vA = nibble0(abcd);
+            int vB = nibble1(abcd);
+            int vC = nibble2(abcd);
+            int vD = nibble3(abcd);
+            int vE = nibble2(opcodeUnit);
+
+            return demuxRegisterDecodedInstruction(this, opcode, registerCount, index, indexType, literal, vA, vB, vC, vD, vE);
+        }
+
+        @Override public void encode(DecodedInstruction insn, CodeOutput out) {
+            encodeRegisterList(insn, out);
+        }
+    },
+
     FORMAT_35MS() {
         @Override public DecodedInstruction decode(int opcodeUnit,
                 CodeInput in) throws EOFException {
@@ -551,8 +573,27 @@ public enum InstructionCodec {
 
     FORMAT_3RC() {
         @Override public DecodedInstruction decode(int opcodeUnit,
-                CodeInput in) throws EOFException {
+                                                   CodeInput in) throws EOFException {
             return decodeRegisterRange(this, opcodeUnit, in);
+        }
+
+        @Override public void encode(DecodedInstruction insn, CodeOutput out) {
+            encodeRegisterRange(insn, out);
+        }
+    },
+
+    FORMAT_4RCI() {
+        @Override public DecodedInstruction decode(int opcodeUnit, CodeInput in) throws EOFException {
+            int opcode = byte0(opcodeUnit);
+            int registerCount = byte1(opcodeUnit);
+            int index = in.read();
+            IndexType indexType = OpcodeInfo.getIndexType(opcode);
+            int a = in.read();
+            int literal = in.readInt();
+            return new RegisterRangeDecodedInstruction(
+                    this, opcode, index, indexType,
+                    0, literal,
+                    a, registerCount);
         }
 
         @Override public void encode(DecodedInstruction insn, CodeOutput out) {
@@ -716,7 +757,7 @@ public enum InstructionCodec {
 
     FORMAT_5RC() {
         @Override public DecodedInstruction decode(int opcodeUnit,
-                CodeInput in) throws EOFException {
+                                                   CodeInput in) throws EOFException {
             int index = in.readInt();
             int registerCount = in.read();
             int a = in.read();
@@ -724,6 +765,30 @@ public enum InstructionCodec {
             return new RegisterRangeDecodedInstruction(
                     this, opcodeUnit, index, indexType,
                     0, 0L,
+                    a, registerCount);
+        }
+
+        @Override public void encode(DecodedInstruction insn, CodeOutput out) {
+            int index = insn.getIndex();
+            out.write(
+                    insn.getOpcodeUnit(),
+                    unit0(index),
+                    unit1(index),
+                    insn.getRegisterCountUnit(),
+                    insn.getAUnit());
+        }
+    },
+
+    FORMAT_6RCI() {
+        @Override public DecodedInstruction decode(int opcodeUnit, CodeInput in) throws EOFException {
+            int index = in.readInt();
+            IndexType indexType = OpcodeInfo.getIndexType(opcodeUnit);
+            int registerCount = in.read();
+            int a = in.read();
+            int literal = in.readInt();
+            return new RegisterRangeDecodedInstruction(
+                    this, opcodeUnit, index, indexType,
+                    0, literal,
                     a, registerCount);
         }
 
@@ -913,36 +978,40 @@ public enum InstructionCodec {
         IndexType indexType = OpcodeInfo.getIndexType(opcode);
 
         // TODO: Having to switch like this is less than ideal.
+        return demuxRegisterDecodedInstruction(format, opcode, registerCount, index, indexType, 0L, a, b, c, d, e);
+    }
+
+    private static DecodedInstruction demuxRegisterDecodedInstruction(InstructionCodec format, int opcode, int registerCount, int index, IndexType indexType, long literal, int vA, int vB, int vC, int vD, int vE) {
         switch (registerCount) {
             case 0:
                 return new ZeroRegisterDecodedInstruction(
                         format, opcode, index, indexType,
-                        0, 0L);
+                        0, literal);
             case 1:
                 return new OneRegisterDecodedInstruction(
                         format, opcode, index, indexType,
-                        0, 0L,
-                        a);
+                        0, literal,
+                        vA);
             case 2:
                 return new TwoRegisterDecodedInstruction(
                         format, opcode, index, indexType,
-                        0, 0L,
-                        a, b);
+                        0, literal,
+                        vA, vB);
             case 3:
                 return new ThreeRegisterDecodedInstruction(
                         format, opcode, index, indexType,
-                        0, 0L,
-                        a, b, c);
+                        0, literal,
+                        vA, vB, vC);
             case 4:
                 return new FourRegisterDecodedInstruction(
                         format, opcode, index, indexType,
-                        0, 0L,
-                        a, b, c, d);
+                        0, literal,
+                        vA, vB, vC, vD);
             case 5:
                 return new FiveRegisterDecodedInstruction(
                         format, opcode, index, indexType,
-                        0, 0L,
-                        a, b, c, d, e);
+                        0, literal,
+                        vA, vB, vC, vD, vE);
         }
 
         throw new DexException("bogus registerCount: "

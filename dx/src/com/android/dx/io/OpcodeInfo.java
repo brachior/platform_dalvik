@@ -311,11 +311,11 @@ public final class OpcodeInfo {
 
     public static final Info INVOKE_EXACT =
         new Info(Opcodes.INVOKE_EXACT, "invoke-exact",
-            InstructionCodec.FORMAT_3RC, IndexType.METHODTYPE_REF);
+            InstructionCodec.FORMAT_35C, IndexType.METHODTYPE_REF);
 
     public static final Info INVOKE_GENERIC =
         new Info(Opcodes.INVOKE_GENERIC, "invoke-generic",
-            InstructionCodec.FORMAT_3RC, IndexType.METHODTYPE_REF);
+            InstructionCodec.FORMAT_35C, IndexType.METHODTYPE_REF);
 
     public static final Info INVOKE_EXACT_RANGE =
         new Info(Opcodes.INVOKE_EXACT_RANGE, "invoke-exact/range",
@@ -515,7 +515,7 @@ public final class OpcodeInfo {
 
     public static final Info INVOKE_DYNAMIC =
         new Info(Opcodes.INVOKE_DYNAMIC, "invoke-dynamic",
-            InstructionCodec.FORMAT_35C, IndexType.INDY_REF);
+            InstructionCodec.FORMAT_45CI, IndexType.INDY_REF);
 
     public static final Info INVOKE_VIRTUAL_RANGE =
         new Info(Opcodes.INVOKE_VIRTUAL_RANGE, "invoke-virtual/range",
@@ -539,7 +539,7 @@ public final class OpcodeInfo {
 
     public static final Info INVOKE_DYNAMIC_RANGE =
         new Info(Opcodes.INVOKE_DYNAMIC_RANGE, "invoke-dynamic/range",
-            InstructionCodec.FORMAT_3RC, IndexType.INDY_REF);
+            InstructionCodec.FORMAT_4RCI, IndexType.INDY_REF);
 
     public static final Info NEG_INT =
         new Info(Opcodes.NEG_INT, "neg-int",
@@ -1123,7 +1123,7 @@ public final class OpcodeInfo {
 
     public static final Info INVOKE_DYNAMIC_JUMBO =
         new Info(Opcodes.INVOKE_DYNAMIC_JUMBO, "invoke-dynamic/jumbo",
-            InstructionCodec.FORMAT_5RC, IndexType.INDY_REF);
+            InstructionCodec.FORMAT_6RCI, IndexType.INDY_REF);
 
     public static final Info CONST_METHODTYPE_JUMBO =
         new Info(Opcodes.CONST_METHODTYPE_JUMBO, "const-methodtype/jumbo",

@@ -16,27 +16,8 @@
 
 package com.android.dx.cf.code;
 
-import com.android.dx.rop.code.FillArrayDataInsn;
-import com.android.dx.rop.code.Insn;
-import com.android.dx.rop.code.PlainCstInsn;
-import com.android.dx.rop.code.PlainInsn;
-import com.android.dx.rop.code.RegOps;
-import com.android.dx.rop.code.RegisterSpec;
-import com.android.dx.rop.code.RegisterSpecList;
-import com.android.dx.rop.code.Rop;
-import com.android.dx.rop.code.Rops;
-import com.android.dx.rop.code.SourcePosition;
-import com.android.dx.rop.code.SwitchInsn;
-import com.android.dx.rop.code.ThrowingCstInsn;
-import com.android.dx.rop.code.ThrowingInsn;
-import com.android.dx.rop.code.TranslationAdvice;
-import com.android.dx.rop.cst.Constant;
-import com.android.dx.rop.cst.CstFieldRef;
-import com.android.dx.rop.cst.CstInteger;
-import com.android.dx.rop.cst.CstMethodRef;
-import com.android.dx.rop.cst.CstNat;
-import com.android.dx.rop.cst.CstString;
-import com.android.dx.rop.cst.CstType;
+import com.android.dx.rop.code.*;
+import com.android.dx.rop.cst.*;
 import com.android.dx.rop.type.Type;
 import com.android.dx.rop.type.TypeBearer;
 import com.android.dx.rop.type.TypeList;
@@ -166,7 +147,7 @@ import java.util.ArrayList;
         this.method = method;
         this.advice = advice;
         this.maxLocals = method.getMaxLocals();
-        this.insns = new ArrayList<Insn>(25);
+        this.insns = new ArrayList<>(25);
         this.catches = null;
         this.catchesUsed = false;
         this.returns = false;
@@ -622,8 +603,11 @@ import java.util.ArrayList;
             returns = true;
         } else if (cst != null) {
             if (canThrow) {
-                insn =
-                        new ThrowingCstInsn(rop, pos, sources, catches, cst);
+                if (cst instanceof CstInvokeDynamic) {
+                    insn = new ThrowingCstIndyInsn(rop, pos, sources, catches, cst, CstInteger.make(getAuxInt()));
+                } else {
+                    insn = new ThrowingCstInsn(rop, pos, sources, catches, cst);
+                }
                 catchesUsed = true;
                 primarySuccessorIndex = catches.size();
             } else {

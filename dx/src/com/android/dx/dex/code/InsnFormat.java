@@ -18,12 +18,7 @@ package com.android.dx.dex.code;
 
 import com.android.dx.rop.code.RegisterSpec;
 import com.android.dx.rop.code.RegisterSpecList;
-import com.android.dx.rop.cst.Constant;
-import com.android.dx.rop.cst.CstInteger;
-import com.android.dx.rop.cst.CstKnownNull;
-import com.android.dx.rop.cst.CstLiteral64;
-import com.android.dx.rop.cst.CstLiteralBits;
-import com.android.dx.rop.cst.CstString;
+import com.android.dx.rop.cst.*;
 import com.android.dx.util.AnnotatedOutput;
 import com.android.dx.util.Hex;
 
@@ -48,9 +43,9 @@ public abstract class InsnFormat {
      * dump, of the given instruction. The instruction must be of this
      * instance's format for proper operation.
      *
-     * @param insn {@code non-null;} the instruction
+     * @param insn        {@code non-null;} the instruction
      * @param noteIndices whether to include an explicit notation of
-     * constant pool indices
+     *                    constant pool indices
      * @return {@code non-null;} the string form
      */
     public final String listingString(DalvInsn insn, boolean noteIndices) {
@@ -79,7 +74,7 @@ public abstract class InsnFormat {
      * The instruction must be of this instance's format. If the instruction
      * has no arguments, then the result should be {@code ""}, not
      * {@code null}.
-     *
+     * <p/>
      * <p>Subclasses must override this method.</p>
      *
      * @param insn {@code non-null;} the instruction
@@ -92,16 +87,16 @@ public abstract class InsnFormat {
      * The instruction must be of this instance's format. If the instruction
      * has no comment, then the result should be {@code ""}, not
      * {@code null}.
-     *
+     * <p/>
      * <p>Subclasses must override this method.</p>
      *
-     * @param insn {@code non-null;} the instruction
+     * @param insn        {@code non-null;} the instruction
      * @param noteIndices whether to include an explicit notation of
-     * constant pool indices
+     *                    constant pool indices
      * @return {@code non-null;} the string form
      */
     public abstract String insnCommentString(DalvInsn insn,
-            boolean noteIndices);
+                                             boolean noteIndices);
 
     /**
      * Gets the code size of instructions that use this format. The
@@ -120,26 +115,26 @@ public abstract class InsnFormat {
      * and are in-range. If this format has a branch target but the
      * instruction's branch offset is unknown, this method will simply
      * not check the offset.
-     *
+     * <p/>
      * <p>Subclasses must override this method.</p>
      *
      * @param insn {@code non-null;} the instruction to check
      * @return {@code true} iff the instruction's arguments are
-     * appropriate for this instance, or {@code false} if not
+     *         appropriate for this instance, or {@code false} if not
      */
     public abstract boolean isCompatible(DalvInsn insn);
 
     /**
      * Returns which of a given instruction's registers will fit in
      * this instance's format.
-     *
+     * <p/>
      * <p>The default implementation of this method always returns
      * an empty BitSet. Subclasses must override this method if they
      * have registers.</p>
      *
      * @param insn {@code non-null;} the instruction to check
      * @return {@code non-null;} a BitSet flagging registers in the
-     * register list that are compatible to this format
+     *         register list that are compatible to this format
      */
     public BitSet compatibleRegs(DalvInsn insn) {
         return new BitSet();
@@ -149,14 +144,14 @@ public abstract class InsnFormat {
      * Returns whether or not the given instruction's branch offset will
      * fit in this instance's format. This always returns {@code false}
      * for formats that don't include a branch offset.
-     *
+     * <p/>
      * <p>The default implementation of this method always returns
      * {@code false}. Subclasses must override this method if they
      * include branch offsets.</p>
      *
      * @param insn {@code non-null;} the instruction to check
      * @return {@code true} iff the instruction's branch offset is
-     * appropriate for this instance, or {@code false} if not
+     *         appropriate for this instance, or {@code false} if not
      */
     public boolean branchFits(TargetInsn insn) {
         return false;
@@ -165,10 +160,10 @@ public abstract class InsnFormat {
     /**
      * Writes the code units for the given instruction to the given
      * output destination. The instruction must be of this instance's format.
-     *
+     * <p/>
      * <p>Subclasses must override this method.</p>
      *
-     * @param out {@code non-null;} the output destination to write to
+     * @param out  {@code non-null;} the output destination to write to
      * @param insn {@code non-null;} the instruction to write
      */
     public abstract void writeTo(AnnotatedOutput out, DalvInsn insn);
@@ -181,7 +176,7 @@ public abstract class InsnFormat {
      */
     protected static String regListString(RegisterSpecList list) {
         int sz = list.size();
-        StringBuffer sb = new StringBuffer(sz * 5 + 2);
+        StringBuilder sb = new StringBuilder(sz * 5 + 2);
 
         sb.append('{');
 
@@ -201,7 +196,7 @@ public abstract class InsnFormat {
      * Helper method to return a register range string.
      *
      * @param list {@code non-null;} the list of registers (which must be
-     * sequential)
+     *             sequential)
      * @return {@code non-null;} the string form
      */
     protected static String regRangeString(RegisterSpecList list) {
@@ -247,7 +242,7 @@ public abstract class InsnFormat {
      * @return {@code non-null;} the string form
      */
     protected static String literalBitsString(CstLiteralBits value) {
-        StringBuffer sb = new StringBuffer(100);
+        StringBuilder sb = new StringBuilder(100);
 
         sb.append('#');
 
@@ -267,29 +262,39 @@ public abstract class InsnFormat {
      *
      * @param value the value
      * @param width the width of the constant, in bits (used for displaying
-     * the uninterpreted bits; one of: {@code 4 8 16 32 64}
+     *              the uninterpreted bits; one of: {@code 4 8 16 32 64}
      * @return {@code non-null;} the comment
      */
     protected static String literalBitsComment(CstLiteralBits value,
-            int width) {
-        StringBuffer sb = new StringBuffer(20);
+                                               int width) {
+        StringBuilder sb = new StringBuilder(20);
 
         sb.append("#");
 
         long bits;
 
         if (value instanceof CstLiteral64) {
-            bits = ((CstLiteral64) value).getLongBits();
+            bits = value.getLongBits();
         } else {
             bits = value.getIntBits();
         }
 
         switch (width) {
-            case 4:  sb.append(Hex.uNibble((int) bits)); break;
-            case 8:  sb.append(Hex.u1((int) bits));      break;
-            case 16: sb.append(Hex.u2((int) bits));      break;
-            case 32: sb.append(Hex.u4((int) bits));      break;
-            case 64: sb.append(Hex.u8(bits));            break;
+            case 4:
+                sb.append(Hex.uNibble((int) bits));
+                break;
+            case 8:
+                sb.append(Hex.u1((int) bits));
+                break;
+            case 16:
+                sb.append(Hex.u2((int) bits));
+                break;
+            case 32:
+                sb.append(Hex.u4((int) bits));
+                break;
+            case 64:
+                sb.append(Hex.u8(bits));
+                break;
             default: {
                 throw new RuntimeException("shouldn't happen");
             }
@@ -303,7 +308,7 @@ public abstract class InsnFormat {
      *
      * @param insn {@code non-null;} the instruction in question
      * @return {@code non-null;} the string form of the instruction's
-     * branch target
+     *         branch target
      */
     protected static String branchString(DalvInsn insn) {
         TargetInsn ti = (TargetInsn) insn;
@@ -331,7 +336,7 @@ public abstract class InsnFormat {
      *
      * @param insn {@code non-null;} a constant-bearing instruction
      * @return {@code non-null;} the human string form of the contained
-     * constant
+     *         constant
      */
     protected static String cstString(DalvInsn insn) {
         CstInsn ci = (CstInsn) insn;
@@ -349,7 +354,7 @@ public abstract class InsnFormat {
     protected static String cstComment(DalvInsn insn) {
         CstInsn ci = (CstInsn) insn;
 
-        if (! ci.hasIndex()) {
+        if (!ci.hasIndex()) {
             return "";
         }
 
@@ -357,6 +362,36 @@ public abstract class InsnFormat {
         int index = ci.getIndex();
 
         sb.append(ci.getConstant().typeName());
+        sb.append('@');
+
+        if (index < 65536) {
+            sb.append(Hex.u2(index));
+        } else {
+            sb.append(Hex.u4(index));
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Helper method to return an instruction comment for a constant.
+     *
+     * @param insn {@code non-null;} a constant-bearing instruction
+     * @return {@code non-null;} comment string representing the constant
+     */
+    protected static String cstIndyComment(DalvInsn insn) {
+        CstIndyInsn ci = (CstIndyInsn) insn;
+
+        if (!ci.hasIndex()) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder(20);
+        int index = ci.getIndex();
+
+        sb.append(ci.getIndy().typeName());
+        sb.append('-');
+        sb.append(ci.getCallsite().typeName());
         sb.append('@');
 
         if (index < 65536) {
@@ -442,8 +477,7 @@ public abstract class InsnFormat {
             return true;
         }
 
-        int first = list.get(0).getReg();
-        int next = first;
+        int next = list.get(0).getReg();
 
         for (int i = 0; i < sz; i++) {
             RegisterSpec one = list.get(i);
@@ -478,7 +512,7 @@ public abstract class InsnFormat {
      * the appropriate form for emitting into a code buffer.
      *
      * @param insn {@code non-null;} the instruction containing the opcode
-     * @param arg {@code 0..255;} arbitrary other byte value
+     * @param arg  {@code 0..255;} arbitrary other byte value
      * @return combined value
      */
     protected static short opcodeUnit(DalvInsn insn, int arg) {
@@ -501,7 +535,7 @@ public abstract class InsnFormat {
      * <i>must</i> be an extended opcode.
      *
      * @param insn {@code non-null;} the instruction containing the
-     * extended opcode
+     *             extended opcode
      * @return the opcode as a code unit
      */
     protected static short opcodeUnit(DalvInsn insn) {
@@ -509,7 +543,7 @@ public abstract class InsnFormat {
 
         if ((opcode < 0xff) || (opcode > 0xffff)) {
             throw new IllegalArgumentException(
-                "extended opcode out of range 255..65535");
+                    "extended opcode out of range 255..65535");
         }
 
         return (short) opcode;
@@ -518,7 +552,7 @@ public abstract class InsnFormat {
     /**
      * Helper method to combine two bytes into a code unit.
      *
-     * @param low {@code 0..255;} low byte
+     * @param low  {@code 0..255;} low byte
      * @param high {@code 0..255;} high byte
      * @return combined value
      */
@@ -566,7 +600,7 @@ public abstract class InsnFormat {
     /**
      * Helper method to combine two nibbles into a byte.
      *
-     * @param low {@code 0..15;} low nibble
+     * @param low  {@code 0..15;} low nibble
      * @param high {@code 0..15;} high nibble
      * @return {@code 0..255;} combined value
      */
@@ -586,7 +620,7 @@ public abstract class InsnFormat {
      * Writes one code unit to the given output destination.
      *
      * @param out {@code non-null;} where to write to
-     * @param c0 code unit to write
+     * @param c0  code unit to write
      */
     protected static void write(AnnotatedOutput out, short c0) {
         out.writeShort(c0);
@@ -596,8 +630,8 @@ public abstract class InsnFormat {
      * Writes two code units to the given output destination.
      *
      * @param out {@code non-null;} where to write to
-     * @param c0 code unit to write
-     * @param c1 code unit to write
+     * @param c0  code unit to write
+     * @param c1  code unit to write
      */
     protected static void write(AnnotatedOutput out, short c0, short c1) {
         out.writeShort(c0);
@@ -608,12 +642,12 @@ public abstract class InsnFormat {
      * Writes three code units to the given output destination.
      *
      * @param out {@code non-null;} where to write to
-     * @param c0 code unit to write
-     * @param c1 code unit to write
-     * @param c2 code unit to write
+     * @param c0  code unit to write
+     * @param c1  code unit to write
+     * @param c2  code unit to write
      */
     protected static void write(AnnotatedOutput out, short c0, short c1,
-            short c2) {
+                                short c2) {
         out.writeShort(c0);
         out.writeShort(c1);
         out.writeShort(c2);
@@ -623,13 +657,13 @@ public abstract class InsnFormat {
      * Writes four code units to the given output destination.
      *
      * @param out {@code non-null;} where to write to
-     * @param c0 code unit to write
-     * @param c1 code unit to write
-     * @param c2 code unit to write
-     * @param c3 code unit to write
+     * @param c0  code unit to write
+     * @param c1  code unit to write
+     * @param c2  code unit to write
+     * @param c3  code unit to write
      */
     protected static void write(AnnotatedOutput out, short c0, short c1,
-            short c2, short c3) {
+                                short c2, short c3) {
         out.writeShort(c0);
         out.writeShort(c1);
         out.writeShort(c2);
@@ -640,14 +674,14 @@ public abstract class InsnFormat {
      * Writes five code units to the given output destination.
      *
      * @param out {@code non-null;} where to write to
-     * @param c0 code unit to write
-     * @param c1 code unit to write
-     * @param c2 code unit to write
-     * @param c3 code unit to write
-     * @param c4 code unit to write
+     * @param c0  code unit to write
+     * @param c1  code unit to write
+     * @param c2  code unit to write
+     * @param c3  code unit to write
+     * @param c4  code unit to write
      */
     protected static void write(AnnotatedOutput out, short c0, short c1,
-            short c2, short c3, short c4) {
+                                short c2, short c3, short c4) {
         out.writeShort(c0);
         out.writeShort(c1);
         out.writeShort(c2);
@@ -660,8 +694,8 @@ public abstract class InsnFormat {
      * second and third are represented as single <code>int</code> and emitted
      * in little-endian order.
      *
-     * @param out {@code non-null;} where to write to
-     * @param c0 code unit to write
+     * @param out  {@code non-null;} where to write to
+     * @param c0   code unit to write
      * @param c1c2 code unit pair to write
      */
     protected static void write(AnnotatedOutput out, short c0, int c1c2) {
@@ -673,13 +707,13 @@ public abstract class InsnFormat {
      * second and third are represented as single <code>int</code> and emitted
      * in little-endian order.
      *
-     * @param out {@code non-null;} where to write to
-     * @param c0 code unit to write
+     * @param out  {@code non-null;} where to write to
+     * @param c0   code unit to write
      * @param c1c2 code unit pair to write
-     * @param c3 code unit to write
+     * @param c3   code unit to write
      */
     protected static void write(AnnotatedOutput out, short c0, int c1c2,
-            short c3) {
+                                short c3) {
         write(out, c0, (short) c1c2, (short) (c1c2 >> 16), c3);
     }
 
@@ -688,14 +722,14 @@ public abstract class InsnFormat {
      * second and third are represented as single <code>int</code> and emitted
      * in little-endian order.
      *
-     * @param out {@code non-null;} where to write to
-     * @param c0 code unit to write
+     * @param out  {@code non-null;} where to write to
+     * @param c0   code unit to write
      * @param c1c2 code unit pair to write
-     * @param c3 code unit to write
-     * @param c4 code unit to write
+     * @param c3   code unit to write
+     * @param c4   code unit to write
      */
     protected static void write(AnnotatedOutput out, short c0, int c1c2,
-            short c3, short c4) {
+                                short c3, short c4) {
         write(out, c0, (short) c1c2, (short) (c1c2 >> 16), c3, c4);
     }
 
@@ -704,8 +738,8 @@ public abstract class InsnFormat {
      * second through fifth are represented as single <code>long</code>
      * and emitted in little-endian order.
      *
-     * @param out {@code non-null;} where to write to
-     * @param c0 code unit to write
+     * @param out      {@code non-null;} where to write to
+     * @param c0       code unit to write
      * @param c1c2c3c4 code unit quad to write
      */
     protected static void write(AnnotatedOutput out, short c0, long c1c2c3c4) {

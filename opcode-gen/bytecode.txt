@@ -39,6 +39,7 @@ format 22b 22s 32s
 format 22c 52c
 format 22t
 format 35c 3rc 5rc
+format 45ci 4rci 6rci
 
 # Optimized formats
 format 00x 
@@ -149,8 +150,8 @@ op   3d if-lez                      21t  n none              continue|branch
 
 op   3e const-methodtype            21c  y methodtype-ref    continue
 op   3f const-methodhandle          21c  y methodhandle-ref  continue
-op   40 invoke-exact                3rc  n methodtype-ref    continue|throw|invoke
-op   41 invoke-generic              3rc  n methodtype-ref    continue|throw|invoke
+op   40 invoke-exact                35c  n methodtype-ref    continue|throw|invoke
+op   41 invoke-generic              35c  n methodtype-ref    continue|throw|invoke
 op   42 invoke-exact/range          3rc  n methodtype-ref    continue|throw|invoke
 op   43 invoke-generic/range        3rc  n methodtype-ref    continue|throw|invoke
 
@@ -202,7 +203,7 @@ op   70 invoke-direct               35c  n method-ref        continue|throw|invo
 op   71 invoke-static               35c  n method-ref        continue|throw|invoke
 op   72 invoke-interface            35c  n method-ref        continue|throw|invoke
 
-op   73 invoke-dynamic              35c  n indy-ref          continue|throw|invoke
+op   73 invoke-dynamic              45ci n indy-ref          continue|throw|invoke
 
 op   74 invoke-virtual/range        3rc  n method-ref        continue|throw|invoke
 op   75 invoke-super/range          3rc  n method-ref        continue|throw|invoke
@@ -210,7 +211,7 @@ op   76 invoke-direct/range         3rc  n method-ref        continue|throw|invo
 op   77 invoke-static/range         3rc  n method-ref        continue|throw|invoke
 op   78 invoke-interface/range      3rc  n method-ref        continue|throw|invoke
 
-op   79 invoke-dynamic/range        3rc  n indy-ref          continue|throw|invoke
+op   79 invoke-dynamic/range        4rci n indy-ref          continue|throw|invoke
 
 # unused: op 7a
 op   7b neg-int                     12x  y none              continue
@@ -402,7 +403,7 @@ op 26ff invoke-interface/jumbo      5rc  n method-ref        continue|throw|invo
 
 op 27ff invoke-exact/jumbo          5rc  n methodtype-ref    continue|throw|invoke
 op 28ff invoke-generic/jumbo        5rc  n methodtype-ref    continue|throw|invoke
-op 29ff invoke-dynamic/jumbo        5rc  n indy-ref          continue|throw|invoke
+op 29ff invoke-dynamic/jumbo        6rci n indy-ref          continue|throw|invoke
 op 2aff const-methodtype/jumbo      41c  n methodtype-ref    continue
 op 2bff const-methodhandle/jumbo    41c  n methodhandle-ref  continue
 

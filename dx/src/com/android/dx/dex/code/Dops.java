@@ -17,34 +17,7 @@
 package com.android.dx.dex.code;
 
 import com.android.dx.dex.DexOptions;
-import com.android.dx.dex.code.form.Form10t;
-import com.android.dx.dex.code.form.Form10x;
-import com.android.dx.dex.code.form.Form11n;
-import com.android.dx.dex.code.form.Form11x;
-import com.android.dx.dex.code.form.Form12x;
-import com.android.dx.dex.code.form.Form20t;
-import com.android.dx.dex.code.form.Form21c;
-import com.android.dx.dex.code.form.Form21h;
-import com.android.dx.dex.code.form.Form21s;
-import com.android.dx.dex.code.form.Form21t;
-import com.android.dx.dex.code.form.Form22b;
-import com.android.dx.dex.code.form.Form22c;
-import com.android.dx.dex.code.form.Form22s;
-import com.android.dx.dex.code.form.Form22t;
-import com.android.dx.dex.code.form.Form22x;
-import com.android.dx.dex.code.form.Form23x;
-import com.android.dx.dex.code.form.Form30t;
-import com.android.dx.dex.code.form.Form31c;
-import com.android.dx.dex.code.form.Form31i;
-import com.android.dx.dex.code.form.Form31t;
-import com.android.dx.dex.code.form.Form32x;
-import com.android.dx.dex.code.form.Form35c;
-import com.android.dx.dex.code.form.Form3rc;
-import com.android.dx.dex.code.form.Form41c;
-import com.android.dx.dex.code.form.Form51l;
-import com.android.dx.dex.code.form.Form52c;
-import com.android.dx.dex.code.form.Form5rc;
-import com.android.dx.dex.code.form.SpecialFormat;
+import com.android.dx.dex.code.form.*;
 import com.android.dx.io.Opcodes;
 
 /**
@@ -326,11 +299,11 @@ public final class Dops {
 
     public static final Dop INVOKE_EXACT =
         new Dop(Opcodes.INVOKE_EXACT, Opcodes.INVOKE_EXACT,
-            Opcodes.INVOKE_EXACT_JUMBO, Form3rc.THE_ONE, false);
+            Opcodes.INVOKE_EXACT_RANGE, Form35c.THE_ONE, false);
 
     public static final Dop INVOKE_GENERIC =
         new Dop(Opcodes.INVOKE_GENERIC, Opcodes.INVOKE_GENERIC,
-            Opcodes.INVOKE_GENERIC_JUMBO, Form3rc.THE_ONE, false);
+            Opcodes.INVOKE_GENERIC_RANGE, Form35c.THE_ONE, false);
 
     public static final Dop INVOKE_EXACT_RANGE =
         new Dop(Opcodes.INVOKE_EXACT_RANGE, Opcodes.INVOKE_EXACT,
@@ -530,7 +503,7 @@ public final class Dops {
 
     public static final Dop INVOKE_DYNAMIC =
         new Dop(Opcodes.INVOKE_DYNAMIC, Opcodes.INVOKE_DYNAMIC,
-            Opcodes.INVOKE_DYNAMIC_RANGE, Form35c.THE_ONE, false);
+            Opcodes.INVOKE_DYNAMIC_RANGE, Form45ci.THE_ONE, false);
 
     public static final Dop INVOKE_VIRTUAL_RANGE =
         new Dop(Opcodes.INVOKE_VIRTUAL_RANGE, Opcodes.INVOKE_VIRTUAL,
@@ -554,7 +527,7 @@ public final class Dops {
 
     public static final Dop INVOKE_DYNAMIC_RANGE =
         new Dop(Opcodes.INVOKE_DYNAMIC_RANGE, Opcodes.INVOKE_DYNAMIC,
-            Opcodes.INVOKE_DYNAMIC_JUMBO, Form3rc.THE_ONE, false);
+            Opcodes.INVOKE_DYNAMIC_JUMBO, Form4rci.THE_ONE, false);
 
     public static final Dop NEG_INT =
         new Dop(Opcodes.NEG_INT, Opcodes.NEG_INT,
@@ -1138,7 +1111,7 @@ public final class Dops {
 
     public static final Dop INVOKE_DYNAMIC_JUMBO =
         new Dop(Opcodes.INVOKE_DYNAMIC_JUMBO, Opcodes.INVOKE_DYNAMIC,
-            Opcodes.NO_NEXT, Form5rc.THE_ONE, false);
+            Opcodes.NO_NEXT, Form6rci.THE_ONE, false);
 
     public static final Dop CONST_METHODTYPE_JUMBO =
         new Dop(Opcodes.CONST_METHODTYPE_JUMBO, Opcodes.CONST_METHODTYPE,

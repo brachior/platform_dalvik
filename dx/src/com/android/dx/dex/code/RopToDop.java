@@ -107,8 +107,6 @@ public final class RopToDop {
     //     Opcodes.CONST_METHODHANDLE
     //     Opcodes.INVOKE_EXACT
     //     Opcodes.INVOKE_GENERIC
-    //     Opcodes.INVOKE_EXACT_RANGE
-    //     Opcodes.INVOKE_GENERIC_RANGE
     //     Opcodes.AGET
     //     Opcodes.AGET_WIDE
     //     Opcodes.AGET_OBJECT
@@ -230,7 +228,7 @@ public final class RopToDop {
          * pessimize. See the automatically-generated comment above
          * for reference.
          */
-        MAP = new HashMap<Rop, Dop>(400);
+        MAP = new HashMap<>(400);
         MAP.put(Rops.NOP,               Dops.NOP);
         MAP.put(Rops.MOVE_INT,          Dops.MOVE);
         MAP.put(Rops.MOVE_LONG,         Dops.MOVE_WIDE);
