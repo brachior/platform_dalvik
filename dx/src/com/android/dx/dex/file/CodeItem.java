@@ -16,17 +16,12 @@
 
 package com.android.dx.dex.file;
 
-import com.android.dx.dex.code.CstInsn;
-import com.android.dx.dex.code.CatchTable;
+import com.android.dx.dex.code.CstIndyInsn;
 import com.android.dx.dex.code.DalvCode;
 import com.android.dx.dex.code.DalvInsn;
 import com.android.dx.dex.code.DalvInsnList;
-import com.android.dx.dex.code.LocalList;
-import com.android.dx.dex.code.PositionList;
 import com.android.dx.rop.cst.Constant;
-import com.android.dx.rop.cst.CstMemberRef;
 import com.android.dx.rop.cst.CstMethodRef;
-import com.android.dx.rop.cst.CstType;
 import com.android.dx.rop.type.StdTypeList;
 import com.android.dx.rop.type.Type;
 import com.android.dx.rop.type.TypeList;
@@ -35,7 +30,6 @@ import com.android.dx.util.ExceptionWithContext;
 import com.android.dx.util.Hex;
 
 import java.io.PrintWriter;
-import java.util.HashSet;
 
 /**
  * Representation of all the parts needed for concrete methods in a
@@ -226,6 +220,16 @@ public final class CodeItem extends OffsettedItem {
         }
 
         setWriteSize(HEADER_SIZE + (insnsSize * 2) + catchesSize);
+    }
+
+    public void callSiteNumbering(DexFile file) {
+        DalvInsnList insns = code.getInsns();
+        for(int i=0; i<insns.size(); i++) {
+            DalvInsn dalvInsn = insns.get(i);
+            if (dalvInsn instanceof CstIndyInsn) {
+                ((CstIndyInsn)dalvInsn).setCallSiteNumber(file.getClassDefs().nextCallSiteNumber());
+            }
+        }
     }
 
     /** {@inheritDoc} */

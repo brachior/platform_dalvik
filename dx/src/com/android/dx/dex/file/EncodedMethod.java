@@ -93,7 +93,7 @@ public final class EncodedMethod extends EncodedMember
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer(100);
+        StringBuilder sb = new StringBuilder(100);
 
         sb.append(getClass().getName());
         sb.append('{');
@@ -121,6 +121,12 @@ public final class EncodedMethod extends EncodedMember
 
         if (code != null) {
             wordData.add(code);
+        }
+    }
+
+    public void callSiteNumbering(DexFile file) {
+        if (code != null) {
+            code.callSiteNumbering(file);
         }
     }
 

@@ -603,11 +603,7 @@ import java.util.ArrayList;
             returns = true;
         } else if (cst != null) {
             if (canThrow) {
-                if (cst instanceof CstInvokeDynamic) {
-                    insn = new ThrowingCstIndyInsn(rop, pos, sources, catches, cst, CstInteger.make(getAuxInt()));
-                } else {
-                    insn = new ThrowingCstInsn(rop, pos, sources, catches, cst);
-                }
+                insn = new ThrowingCstInsn(rop, pos, sources, catches, cst);
                 catchesUsed = true;
                 primarySuccessorIndex = catches.size();
             } else {

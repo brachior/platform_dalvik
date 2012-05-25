@@ -3,7 +3,6 @@ package com.android.dx.dex.code;
 import com.android.dx.rop.code.RegisterSpecList;
 import com.android.dx.rop.code.SourcePosition;
 import com.android.dx.rop.cst.Constant;
-import com.android.dx.rop.cst.CstInteger;
 import com.android.dx.rop.cst.CstInvokeDynamic;
 
 public class CstIndyInsn extends FixedSizeInsn {
@@ -15,7 +14,7 @@ public class CstIndyInsn extends FixedSizeInsn {
     /**
      * {@code non-null;} the integer constant argument for the callsite of this instruction
      */
-    private final CstInteger callsite;
+    private int callSiteNumber;
 
     /**
      * {@code >= -1;} the constant pool index for {@link #indy}, or
@@ -45,26 +44,26 @@ public class CstIndyInsn extends FixedSizeInsn {
      *                  result register if appropriate (that is, registers may be either
      *                  ins or outs)
      */
-    public CstIndyInsn(Dop opcode, SourcePosition position, RegisterSpecList registers, Constant indy, Constant callsite) {
+    public CstIndyInsn(Dop opcode, SourcePosition position, RegisterSpecList registers, Constant indy) {
         super(opcode, position, registers);
 
         if (!(indy instanceof CstInvokeDynamic)) {
             throw new RuntimeException(indy.toHuman() + " : is not an invoke-dynamic constant");
         }
 
-        if (!(callsite instanceof CstInteger)) {
-            throw new RuntimeException(callsite.toHuman() + " : is not an integer constant");
-        }
-
         this.indy = (CstInvokeDynamic) indy;
-        this.callsite = (CstInteger) callsite;
+        this.callSiteNumber = -1;
         this.index = -1;
         this.classIndex = -1;
     }
 
     @Override
     public DalvInsn withOpcode(Dop opcode) {
-        CstIndyInsn result = new CstIndyInsn(opcode, getPosition(), getRegisters(), indy, callsite);
+        CstIndyInsn result = new CstIndyInsn(opcode, getPosition(), getRegisters(), indy);
+
+        if (callSiteNumber >= 0) {
+            result.setCallSiteNumber(callSiteNumber);
+        }
 
         if (index >= 0) {
             result.setIndex(index);
@@ -79,7 +78,11 @@ public class CstIndyInsn extends FixedSizeInsn {
 
     @Override
     public DalvInsn withRegisters(RegisterSpecList registers) {
-        CstIndyInsn result = new CstIndyInsn(getOpcode(), getPosition(), registers, indy, callsite);
+        CstIndyInsn result = new CstIndyInsn(getOpcode(), getPosition(), registers, indy);
+
+        if (callSiteNumber >= 0) {
+            result.setCallSiteNumber(callSiteNumber);
+        }
 
         if (index >= 0) {
             result.setIndex(index);
@@ -101,13 +104,12 @@ public class CstIndyInsn extends FixedSizeInsn {
         return indy;
     }
 
-    /**
-     * Gets the callsite constant argument.
-     *
-     * @return {@code non-null;} the callsite constant argument
-     */
-    public CstInteger getCallsite() {
-        return callsite;
+    public int getCallSiteNumber() {
+        return callSiteNumber;
+    }
+
+    public void setCallSiteNumber(int callsiteNumber) {
+        this.callSiteNumber = callsiteNumber;
     }
 
     /**
@@ -200,6 +202,6 @@ public class CstIndyInsn extends FixedSizeInsn {
 
     @Override
     protected String argString() {
-        return indy.toHuman() + ", " + callsite.toHuman();
+        return indy.toHuman() + ", " + callSiteNumber;
     }
 }

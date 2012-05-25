@@ -400,13 +400,6 @@ public abstract class Insn implements ToHuman {
         public void visitPlainCstInsn(PlainCstInsn insn);
 
         /**
-         * Visits a {@link PlainCstIndyInsn}.
-         *
-         * @param insn {@code non-null;} the instruction to visit
-         */
-        public void visitPlainCstIndyInsn(PlainCstIndyInsn insn);
-
-        /**
          * Visits a {@link SwitchInsn}.
          *
          * @param insn {@code non-null;} the instruction to visit
@@ -419,14 +412,6 @@ public abstract class Insn implements ToHuman {
          * @param insn {@code non-null;} the instruction to visit
          */
         public void visitThrowingCstInsn(ThrowingCstInsn insn);
-
-
-        /**
-         * Visits a {@link ThrowingCstIndyInsn}.
-         *
-         * @param insn {@code non-null;} the instruction to visit
-         */
-        public void visitThrowingCstIndyInsn(ThrowingCstIndyInsn insn);
 
         /**
          * Visits a {@link ThrowingInsn}.
@@ -465,13 +450,6 @@ public abstract class Insn implements ToHuman {
         /**
          * {@inheritDoc}
          */
-        public void visitPlainCstIndyInsn(PlainCstIndyInsn insn) {
-            // This space intentionally left blank.
-        }
-
-        /**
-         * {@inheritDoc}
-         */
         public void visitSwitchInsn(SwitchInsn insn) {
             // This space intentionally left blank.
         }
@@ -480,11 +458,6 @@ public abstract class Insn implements ToHuman {
          * {@inheritDoc}
          */
         public void visitThrowingCstInsn(ThrowingCstInsn insn) {
-            // This space intentionally left blank.
-        }
-
-        @Override
-        public void visitThrowingCstIndyInsn(ThrowingCstIndyInsn insn) {
             // This space intentionally left blank.
         }
 

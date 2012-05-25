@@ -40,6 +40,8 @@ public final class ClassDefsSection extends UniformItemSection {
     /** {@code null-ok;} ordered list of classes; set in {@link #orderItems} */
     private ArrayList<ClassDefItem> orderedDefs;
 
+    private int callSiteCount;
+
     /**
      * Constructs an instance. The file offset is initially unknown.
      *
@@ -95,10 +97,12 @@ public final class ClassDefsSection extends UniformItemSection {
         if (out.annotates()) {
             out.annotate(4, "class_defs_size: " + Hex.u4(sz));
             out.annotate(4, "class_defs_off:  " + Hex.u4(offset));
+            out.annotate(4, "class_defs_callsite_count:  " + Hex.u4(callSiteCount));
         }
 
         out.writeInt(sz);
         out.writeInt(offset);
+        out.writeInt(callSiteCount);
     }
 
     /**
@@ -124,6 +128,10 @@ public final class ClassDefsSection extends UniformItemSection {
         }
 
         classDefs.put(type, clazz);
+    }
+
+    public int nextCallSiteNumber() {
+        return callSiteCount++;
     }
 
     /** {@inheritDoc} */

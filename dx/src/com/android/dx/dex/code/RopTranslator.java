@@ -21,6 +21,7 @@ import com.android.dx.io.Opcodes;
 import com.android.dx.rop.code.*;
 import com.android.dx.rop.cst.Constant;
 import com.android.dx.rop.cst.CstInteger;
+import com.android.dx.rop.cst.CstInvokeDynamic;
 import com.android.dx.util.Bits;
 import com.android.dx.util.IntList;
 
@@ -595,15 +596,6 @@ public final class RopTranslator {
             }
         }
 
-        @Override
-        public void visitPlainCstIndyInsn(PlainCstIndyInsn insn) {
-            SourcePosition pos = insn.getPosition();
-            Dop opcode = RopToDop.dopFor(insn);
-            RegisterSpecList regs = getRegs(insn);
-            DalvInsn di = new CstIndyInsn(opcode, pos, regs, insn.getIndy(), insn.getCallsite());
-            addOutput(di);
-        }
-
         /** {@inheritDoc} */
         public void visitSwitchInsn(SwitchInsn insn) {
             SourcePosition pos = insn.getPosition();
@@ -690,8 +682,12 @@ public final class RopTranslator {
 
             if (rop.isCallLike()) {
                 RegisterSpecList regs = insn.getSources();
-                DalvInsn di = new CstInsn(opcode, pos, regs, cst);
-
+                DalvInsn di;
+                if (cst instanceof CstInvokeDynamic) {
+                    di = new CstIndyInsn(opcode, pos, regs, cst);
+                } else {
+                    di = new CstInsn(opcode, pos, regs, cst);
+                }
                 addOutput(di);
             } else {
                 RegisterSpec realResult = getNextMoveResultPseudo();
@@ -726,24 +722,6 @@ public final class RopTranslator {
 
                 addOutput(di);
             }
-        }
-
-        @Override
-        public void visitThrowingCstIndyInsn(ThrowingCstIndyInsn insn) {
-            SourcePosition pos = insn.getPosition();
-            Dop opcode = RopToDop.dopFor(insn);
-            Rop rop = insn.getOpcode();
-
-            if (rop.getBranchingness() != Rop.BRANCH_THROW) {
-                throw new RuntimeException("shouldn't happen");
-            }
-
-            addOutput(lastAddress);
-
-            RegisterSpecList regs = insn.getSources();
-            DalvInsn di = new CstIndyInsn(opcode, pos, regs, insn.getIndy(), insn.getCallsite());
-
-            addOutput(di);
         }
 
         /** {@inheritDoc} */
@@ -852,12 +830,6 @@ public final class RopTranslator {
             addIntroductionIfNecessary(insn);
         }
 
-        @Override
-        public void visitPlainCstIndyInsn(PlainCstIndyInsn insn) {
-            super.visitPlainCstIndyInsn(insn);
-            addIntroductionIfNecessary(insn);
-        }
-
         /** {@inheritDoc} */
         @Override
         public void visitSwitchInsn(SwitchInsn insn) {
@@ -869,12 +841,6 @@ public final class RopTranslator {
         @Override
         public void visitThrowingCstInsn(ThrowingCstInsn insn) {
             super.visitThrowingCstInsn(insn);
-            addIntroductionIfNecessary(insn);
-        }
-
-        /** {@inheritDoc} */
-        public void visitThrowingCstIndyInsn(ThrowingCstIndyInsn insn) {
-            super.visitThrowingCstIndyInsn(insn);
             addIntroductionIfNecessary(insn);
         }
 

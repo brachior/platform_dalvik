@@ -391,7 +391,7 @@ public abstract class InsnFormat {
 
         sb.append(ci.getIndy().typeName());
         sb.append('-');
-        sb.append(ci.getCallsite().typeName());
+        sb.append(Hex.u4(ci.getCallSiteNumber()));
         sb.append('@');
 
         if (index < 65536) {

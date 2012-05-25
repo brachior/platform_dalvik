@@ -329,6 +329,13 @@ public final class ClassDataItem extends OffsettedItem {
         encodeOutput(addedTo.getFile(), out);
         encodedForm = out.toByteArray();
         setWriteSize(encodedForm.length);
+
+        if (!directMethods.isEmpty()) {
+            Collections.sort(directMethods);
+            for (EncodedMethod method : directMethods) {
+                method.callSiteNumbering(addedTo.getFile());
+            }
+        }
     }
 
     /**

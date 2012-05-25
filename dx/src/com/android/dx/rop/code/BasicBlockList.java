@@ -341,22 +341,12 @@ public final class BasicBlockList extends LabeledList {
         }
 
         /** {@inheritDoc} */
-        public void visitPlainCstIndyInsn(PlainCstIndyInsn insn) {
-            visit(insn);
-        }
-
-        /** {@inheritDoc} */
         public void visitSwitchInsn(SwitchInsn insn) {
             visit(insn);
         }
 
         /** {@inheritDoc} */
         public void visitThrowingCstInsn(ThrowingCstInsn insn) {
-            visit(insn);
-        }
-
-        @Override
-        public void visitThrowingCstIndyInsn(ThrowingCstIndyInsn insn) {
             visit(insn);
         }
 
